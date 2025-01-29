@@ -48,5 +48,6 @@ Use axios to send a GET request. Render the response in the browser.
 
 Use axios to send a POST request.
 
+# Project Progress and Goals
 [Progress and Goals](ProgressAndGoals.md)
 
