@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { BACKEND_URL } from '../../constants';
 
 const PEOPLE_READ_ENDPOINT = `${BACKEND_URL}/people`;
-const PEOPLE_CREATE_ENDPOINT = `${BACKEND_URL}/people/create`;
+const PEOPLE_CREATE_ENDPOINT = `${BACKEND_URL}/people`;
 
 function AddPersonForm({
   visible,
@@ -25,11 +25,23 @@ function AddPersonForm({
     const newPerson = {
       name: name,
       email: email,
-    }
-    axios.put(PEOPLE_CREATE_ENDPOINT, newPerson)
-      .then(fetchPeople)
-      .catch((error) => { setError(`There was a problem adding the person. ${error}`); });
+      roles: "ED",
+      affiliation: "nyu"
+    };
+
+    axios.post(PEOPLE_CREATE_ENDPOINT, newPerson, {
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      }
+    })
+        .then(fetchPeople)
+        .catch((error) => {
+          console.error("PUT request failed:", error.response?.data || error);
+          setError(`There was a problem adding the person. ${error.response?.data?.message || error.message}`);
+        });
   };
+
 
   if (!visible) return null;
   return (
