@@ -7,6 +7,7 @@ import { BACKEND_URL } from '../../constants';
 
 const PEOPLE_READ_ENDPOINT = `${BACKEND_URL}/people`;
 const PEOPLE_CREATE_ENDPOINT = `${BACKEND_URL}/people`;
+const PEOPLE_DELETE_ENDPOINT = `${BACKEND_URL}/people`;
 
 function AddPersonForm({
   visible,
@@ -107,6 +108,8 @@ function People() {
   const [error, setError] = useState('');
   const [people, setPeople] = useState([]);
   const [addingPerson, setAddingPerson] = useState(false);
+  const [deletingPerson, setDeletingPerson] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState('');
 
   const fetchPeople = () => {
     axios.get(PEOPLE_READ_ENDPOINT)
@@ -114,31 +117,77 @@ function People() {
       .catch((error) => setError(`There was a problem retrieving the list of people. ${error}`));
   };
 
+    const deletePerson = (event) => {
+        event.preventDefault();
+        if (!deleteEmail) {
+            setError('Please enter an email to delete.');
+            return;
+        }
+
+        axios.delete(PEOPLE_DELETE_ENDPOINT, {
+            data: { email: deleteEmail },
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        })
+            .then(() => {
+                setDeleteEmail('');
+                setDeletingPerson(false);
+                fetchPeople();
+            })
+            .catch((error) => {
+                console.error("DELETE request failed:", error.response?.data || error);
+            });
+    };
+
   const showAddPersonForm = () => { setAddingPerson(true); };
   const hideAddPersonForm = () => { setAddingPerson(false); };
 
   useEffect(fetchPeople, []);
 
-  return (
-    <div className="wrapper">
-      <header>
-        <h1>
-          View All People
-        </h1>
-        <button type="button" onClick={showAddPersonForm}>
-          Add a Person
-        </button>
-      </header>
-      <AddPersonForm
-        visible={addingPerson}
-        cancel={hideAddPersonForm}
-        fetchPeople={fetchPeople}
-        setError={setError}
-      />
-      {error && <ErrorMessage message={error} />}
-      {people.map((person) => <Person key={person.name} person={person} />)}
-    </div>
-  );
+    return (
+        <div className="wrapper">
+            <header>
+                <h1>View All People</h1>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "start", gap: "10px" }}>
+                    <button type="button" onClick={showAddPersonForm}>
+                        Add a Person
+                    </button>
+
+                    <button type="button" onClick={() => setDeletingPerson(true)}>
+                        Delete a Person
+                    </button>
+                </div>
+            </header>
+
+            <AddPersonForm
+                visible={addingPerson}
+                cancel={hideAddPersonForm}
+                fetchPeople={fetchPeople}
+                setError={setError}
+            />
+
+            {error && <ErrorMessage message={error} />}
+
+            {people.map((person) => <Person key={person.name} person={person} />)}
+
+            {deletingPerson && (
+                <form onSubmit={deletePerson}>
+                    <label htmlFor="delete-email">Enter Email to Delete:</label>
+                    <input
+                        type="email"
+                        id="delete-email"
+                        value={deleteEmail}
+                        onChange={(e) => setDeleteEmail(e.target.value)}
+                        required
+                    />
+                    <button type="button" onClick={() => setDeletingPerson(false)}>Cancel</button>
+                    <button type="submit">Submit</button>
+                </form>
+            )}
+        </div>
+    );
 }
 
 export default People;
