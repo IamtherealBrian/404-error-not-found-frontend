@@ -110,12 +110,46 @@ function People() {
   const [addingPerson, setAddingPerson] = useState(false);
   const [deletingPerson, setDeletingPerson] = useState(false);
   const [deleteEmail, setDeleteEmail] = useState('');
+  const [updatingPerson, setUpdatingPerson] = useState(false);
+  const [updateEmail, setUpdateEmail] = useState('');
+  const [updateName, setUpdateName] = useState('');
+  const [updateAffiliation, setUpdateAffiliation] = useState('');
+  const [updateRole, setUpdateRole] = useState('');
+
 
   const fetchPeople = () => {
     axios.get(PEOPLE_READ_ENDPOINT)
       .then(({ data }) => { setPeople(peopleObjectToArray(data)) })
       .catch((error) => setError(`There was a problem retrieving the list of people. ${error}`));
   };
+
+
+    const updatePerson = (event) => {
+        event.preventDefault();
+        if (!updateEmail) {
+            setError('Please enter an email to update.');
+            return;
+        }
+
+        const updatedData = {
+            email: updateEmail,
+            name: updateName || undefined,
+            affiliation: updateAffiliation || undefined,
+            role: updateRole || undefined
+        };
+
+        axios.put(PEOPLE_READ_ENDPOINT, updatedData, {
+            headers: { "Content-Type": "application/json", "Accept": "application/json" }
+        })
+            .then(() => {
+                setUpdatingPerson(false);
+                fetchPeople();
+            })
+            .catch((error) => {
+                console.error("PUT request failed:", error.response?.data || error);
+                setError(`There was a problem updating the person. ${error.response?.data?.message || error.message}`);
+            });
+    };
 
     const deletePerson = (event) => {
         event.preventDefault();
@@ -150,13 +184,17 @@ function People() {
         <div className="wrapper">
             <header>
                 <h1>View All People</h1>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "start", gap: "10px" }}>
+                <div style={{display: "flex", flexDirection: "column", alignItems: "start", gap: "10px"}}>
                     <button type="button" onClick={showAddPersonForm}>
                         Add a Person
                     </button>
 
                     <button type="button" onClick={() => setDeletingPerson(true)}>
                         Delete a Person
+                    </button>
+
+                    <button type="button" onClick={() => setUpdatingPerson(true)}>
+                        Update a Person
                     </button>
                 </div>
             </header>
@@ -168,13 +206,13 @@ function People() {
                 setError={setError}
             />
 
-            {error && <ErrorMessage message={error} />}
+            {error && <ErrorMessage message={error}/>}
 
-            {people.map((person) => <Person key={person.name} person={person} />)}
+            {people.map((person) => <Person key={person.name} person={person}/>)}
 
             {deletingPerson && (
                 <form onSubmit={deletePerson}>
-                    <label htmlFor="delete-email">Enter Email to Delete:</label>
+                <label htmlFor="delete-email">Enter Email to Delete:</label>
                     <input
                         type="email"
                         id="delete-email"
@@ -184,6 +222,27 @@ function People() {
                     />
                     <button type="button" onClick={() => setDeletingPerson(false)}>Cancel</button>
                     <button type="submit">Submit</button>
+                </form>
+            )}
+
+            {updatingPerson && (
+                <form onSubmit={updatePerson} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <label>Email (ID):</label>
+                    <input type="email" value={updateEmail} onChange={(e) => setUpdateEmail(e.target.value)} />
+
+                    <label>New Name:</label>
+                    <input type="text" value={updateName} onChange={(e) => setUpdateName(e.target.value)} />
+
+                    <label>New Affiliation:</label>
+                    <input type="text" value={updateAffiliation} onChange={(e) => setUpdateAffiliation(e.target.value)} />
+
+                    <label>New Role:</label>
+                    <input type="text" value={updateRole} onChange={(e) => setUpdateRole(e.target.value)} />
+
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                        <button type="button" onClick={() => setUpdatingPerson(false)}>Cancel</button>
+                        <button type="submit">Submit</button>
+                    </div>
                 </form>
             )}
         </div>
