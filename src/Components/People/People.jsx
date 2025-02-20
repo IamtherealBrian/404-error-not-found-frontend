@@ -125,6 +125,10 @@ function People() {
    setUpdateAffiliation(person.affiliation || '');
    setUpdateRole(person.roles || '');
  };
+  const handleDelete = (email) => {
+      setDeletingPerson(true);
+      setDeleteEmail(email);
+  };
 
   const fetchPeople = () => {
     axios.get(PEOPLE_READ_ENDPOINT)
@@ -222,7 +226,7 @@ function People() {
                      key={person.name}
                      person={person}
                      onUpdate={handleUpdate}
-
+                     onDelete={handleDelete}
                    />
                  ))}
 
