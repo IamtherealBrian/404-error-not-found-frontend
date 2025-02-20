@@ -176,10 +176,22 @@ function People() {
       setDeleteEmail(email);
   };
 
-  const fetchPeople = () => {
-    axios.get(PEOPLE_READ_ENDPOINT)
-      .then(({ data }) => { setPeople(peopleObjectToArray(data)) })
-      .catch((error) => setError(`There was a problem retrieving the list of people. ${error}`));
+  // const fetchPeople = () => {
+  //   axios.get(PEOPLE_READ_ENDPOINT)
+  //     .then(({ data }) => { setPeople(peopleObjectToArray(data)) })
+  //     .catch((error) => setError(`There was a problem retrieving the list of people. ${error}`));
+  // };
+  const fetchPeople = async () => {
+    try {
+        const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
+        setPeople(peopleObjectToArray(data)); // Convert and set people data
+    } catch (error) {
+        if (!error.response) {
+            setError("Network error. Please check your internet connection.");
+        } else {
+            setError(`There was a problem retrieving the list of people. ${error.response.data?.message || error.message}`);
+        }
+    }
   };
 
 
