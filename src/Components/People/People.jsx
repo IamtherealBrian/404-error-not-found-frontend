@@ -78,24 +78,26 @@ ErrorMessage.propTypes = {
   message: propTypes.string.isRequired,
 };
 
-function Person({ person }) {
-  const { name, email } = person;
-  return (
-    <Link to={name}>
-      <div className="person-container">
-        <h2>{name}</h2>
-        <p>
-          Email: {email}
-        </p>
-      </div>
-    </Link>
-  );
+function Person({ person, onUpdate, onDelete }) {
+    const { name, email } = person;
+    return (
+        <div className="person-container">
+            <Link to={name}>
+                <h2>{name}</h2>
+                <p>Email: {email}</p>
+            </Link>
+            <button onClick={() => onUpdate(person)}>Update</button>
+            <button onClick={() => onDelete(person.email)}>Delete</button>
+        </div>
+    );
 }
 Person.propTypes = {
-  person: propTypes.shape({
-    name: propTypes.string.isRequired,
-    email: propTypes.string.isRequired,
-  }).isRequired,
+    person: propTypes.shape({
+        name: propTypes.string.isRequired,
+        email: propTypes.string.isRequired,
+    }).isRequired,
+    onUpdate: propTypes.func.isRequired,
+    onDelete: propTypes.func.isRequired,
 };
 
 function peopleObjectToArray(Data) {
@@ -116,6 +118,13 @@ function People() {
   const [updateAffiliation, setUpdateAffiliation] = useState('');
   const [updateRole, setUpdateRole] = useState('');
 
+  const handleUpdate = (person) => {
+   setUpdatingPerson(true);
+   setUpdateEmail(person.email);
+   setUpdateName(person.name);
+   setUpdateAffiliation(person.affiliation || '');
+   setUpdateRole(person.roles || '');
+ };
 
   const fetchPeople = () => {
     axios.get(PEOPLE_READ_ENDPOINT)
@@ -208,7 +217,14 @@ function People() {
 
             {error && <ErrorMessage message={error}/>}
 
-            {people.map((person) => <Person key={person.name} person={person}/>)}
+            {people.map((person) => (
+                   <Person
+                     key={person.name}
+                     person={person}
+                     onUpdate={handleUpdate}
+
+                   />
+                 ))}
 
             {deletingPerson && (
                 <form onSubmit={deletePerson}>
