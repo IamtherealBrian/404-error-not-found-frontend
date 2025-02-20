@@ -21,44 +21,90 @@ function AddPersonForm({
   const changeName = (event) => { setName(event.target.value); };
   const changeEmail = (event) => { setEmail(event.target.value); };
 
-  const addPerson = (event) => {
-    event.preventDefault();
-    const newPerson = {
-      name: name,
-      email: email,
-      roles: "ED",
-      affiliation: "nyu"
-    };
+  // const addPerson = (event) => {
+  //   event.preventDefault();
+  //   const newPerson = {
+  //     name: name,
+  //     email: email,
+  //     roles: "ED",
+  //     affiliation: "nyu"
+  //   };
+  //
+  //   axios.post(PEOPLE_CREATE_ENDPOINT, newPerson, {
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       "Accept": "application/json"
+  //     }
+  //   })
+  //       .then(fetchPeople)
+  //       .catch((error) => {
+  //         console.error("PUT request failed:", error.response?.data || error);
+  //         setError(`There was a problem adding the person. ${error.response?.data?.message || error.message}`);
+  //       });
+  // };
+    //
 
-    axios.post(PEOPLE_CREATE_ENDPOINT, newPerson, {
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      }
-    })
-        .then(fetchPeople)
-        .catch((error) => {
-          console.error("PUT request failed:", error.response?.data || error);
+  // if (!visible) return null;
+  // return (
+  //   <form>
+  //     <label htmlFor="name">
+  //       Name
+  //     </label>
+  //     <input required type="text" id="name" value={name} onChange={changeName} />
+  //     <label htmlFor="email">
+  //       Email
+  //     </label>
+  //     <input required type="text" id="email" onChange={changeEmail} />
+  //     <button type="button" onClick={cancel}>Cancel</button>
+  //     <button type="submit" onClick={addPerson}>Submit</button>
+  //   </form>
+  // );
+
+  const [loading, setLoading] = useState(false);
+  const addPerson = async (event) => {
+      event.preventDefault();
+      setLoading(true);  // Set loading state to prevent multiple submissions
+
+      const newPerson = {
+          name: name,
+          email: email,
+          roles: "ED",
+          affiliation: "nyu"
+      };
+
+      try {
+          await axios.post(PEOPLE_CREATE_ENDPOINT, newPerson, {
+              headers: { "Content-Type": "application/json", "Accept": "application/json" }
+          });
+          fetchPeople();  // Refresh the list after successful addition
+      } catch (error) {
+          console.error("POST request failed:", error.response?.data || error);
           setError(`There was a problem adding the person. ${error.response?.data?.message || error.message}`);
-        });
+      } finally {
+          setLoading(false);  // Reset loading state after request completion
+      }
   };
 
-
+  // Ensure the form is not rendered when `visible` is false
   if (!visible) return null;
+
   return (
     <form>
-      <label htmlFor="name">
-        Name
-      </label>
+      <label htmlFor="name">Name</label>
       <input required type="text" id="name" value={name} onChange={changeName} />
-      <label htmlFor="email">
-        Email
-      </label>
-      <input required type="text" id="email" onChange={changeEmail} />
-      <button type="button" onClick={cancel}>Cancel</button>
-      <button type="submit" onClick={addPerson}>Submit</button>
+
+      <label htmlFor="email">Email</label>
+      <input required type="text" id="email" value={email} onChange={changeEmail} />
+
+      <button type="button" onClick={cancel} disabled={loading}>
+        Cancel
+      </button>
+      <button type="submit" onClick={addPerson} disabled={loading}>
+        {loading ? "Submitting..." : "Submit"}
+      </button>
     </form>
   );
+
 }
 AddPersonForm.propTypes = {
   visible: propTypes.bool.isRequired,
@@ -270,3 +316,4 @@ function People() {
 }
 
 export default People;
+
