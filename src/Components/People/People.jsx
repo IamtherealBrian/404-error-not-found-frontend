@@ -249,7 +249,10 @@ function People() {
   const showAddPersonForm = () => { setAddingPerson(true); };
   const hideAddPersonForm = () => { setAddingPerson(false); };
 
-  useEffect(fetchPeople, []);
+  useEffect(() => {
+      fetchPeople();
+  }, []);
+
 
     return (
         <div className="wrapper">
