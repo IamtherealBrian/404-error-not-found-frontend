@@ -123,53 +123,69 @@ function textsObjectToArray(data) {
   return texts;
 }
 
+
 function Texts() {
-  const [error, setError] = useState('');
-  const [texts, setTexts] = useState([]);
-  const [addingText, setAddingText] = useState(false);
+    const [error, setError] = useState('');
+    const [texts, setTexts] = useState([]);
+    const [addingText, setAddingText] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-  const fetchTexts = () => {
-    axios
-      .get(TEXT_READ_ENDPOINT)
-      .then(({ data }) => {
-        if (Array.isArray(data)) {
-          setTexts(data);
-        } else {
-          setTexts(textsObjectToArray(data));
+    const fetchTexts = async () => {
+        setLoading(true);
+        try {
+            const { data } = await axios.get(TEXT_READ_ENDPOINT);
+            if (Array.isArray(data)) {
+                setTexts(data);
+            } else {
+                setTexts(textsObjectToArray(data));
+            }
+        } catch (err) {
+            setError(`There was a problem retrieving the texts. ${err}`);
+        } finally {
+            setLoading(false);
         }
-      })
-      .catch((error) =>
-        setError(`There was a problem retrieving the texts. ${error}`)
-      );
-  };
+    };
 
-  const showAddTextForm = () => setAddingText(true);
-  const hideAddTextForm = () => setAddingText(false);
+    useEffect(() => {
+        fetchTexts();
+    }, []);
 
-  useEffect(() => {
-    fetchTexts();
-  }, []);
+    return (
+        <div className="wrapper">
+            <header>
+                <h1>View All Texts</h1>
+                <button type="button" onClick={() => setAddingText(true)}>
+                    Add Text
+                </button>
+            </header>
 
-  return (
-    <div className="wrapper">
-      <header>
-        <h1>View All Texts</h1>
-        <button type = 'button' onClick={showAddTextForm}>
-          Add Text
-        </button>
-      </header>
-      <AddTextForm 
-        visible={addingText} 
-        cancel={hideAddTextForm} 
-        fetchTexts={fetchTexts} 
-        setError={setError}
-      />
-      {error && <ErrorMessage message={error} />}
-      {texts.map((textItem) => (
-        <TextItem key={textItem.key} text={textItem} fetchTexts={fetchTexts} />
-      ))}
-    </div>
-  );
+            {loading ? (
+                <div className="spinner">Loading...</div>
+            ) : (
+                texts.map((textItem) => (
+                    <TextItem key={textItem.key} text={textItem} fetchTexts={fetchTexts} />
+                ))
+            )}
+
+            {error && <ErrorMessage message={error} />}
+
+            {addingText && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <button className="close" onClick={() => setAddingText(false)}>
+                            &times;
+                        </button>
+                        <AddTextForm
+                            visible={true}
+                            cancel={() => setAddingText(false)}
+                            fetchTexts={fetchTexts}
+                            setError={setError}
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default Texts;
