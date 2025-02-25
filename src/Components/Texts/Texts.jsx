@@ -82,16 +82,18 @@ function TextItem({ text, fetchTexts }) {
   // Destructure the properties of the text entry.
   const { key, title, text: content } = text;
 
-  const deleteText = () => {
-    axios
-      .delete(TEXT_DELETE_ENDPOINT, { data: { key } })
-      .then(fetchTexts)
-      .catch((error) => {
-        console.error('There was a problem deleting the text.', error);
-      });
-  };
+    const deleteText = () => {
+        console.log("Attempting to delete key:", key); // Debug log
 
-  return (
+        axios
+            .delete(`${TEXT_DELETE_ENDPOINT}?key=${encodeURIComponent(key)}`) // URL 传参
+            .then(fetchTexts)
+            .catch((error) => {
+                console.error("Delete request failed:", error.response ? error.response.data : error.message);
+            });
+    };
+
+    return (
     <div className="text-item">
       <h2>{title}</h2>
       <p>{content}</p>
@@ -134,11 +136,15 @@ function Texts() {
         setLoading(true);
         try {
             const { data } = await axios.get(TEXT_READ_ENDPOINT);
-            if (Array.isArray(data)) {
-                setTexts(data);
-            } else {
-                setTexts(textsObjectToArray(data));
-            }
+            console.log("Fetched raw data:", data); // Debug log
+
+            let textsArray = Array.isArray(data) ? data : textsObjectToArray(data);
+
+            // 去重：基于 key 过滤重复项
+            const uniqueTexts = Array.from(new Map(textsArray.map(item => [item.key, item])).values());
+
+            console.log("Processed unique texts:", uniqueTexts); // Debug log
+            setTexts(uniqueTexts);
         } catch (err) {
             setError(`There was a problem retrieving the texts. ${err}`);
         } finally {
