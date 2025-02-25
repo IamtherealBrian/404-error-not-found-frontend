@@ -77,6 +77,7 @@ function AddPersonForm({
               headers: { "Content-Type": "application/json", "Accept": "application/json" }
           });
           fetchPeople();  // Refresh the list after successful addition
+          cancel();
       } catch (error) {
           console.error("POST request failed:", error.response?.data || error);
           setError(`There was a problem adding the person. ${error.response?.data?.message || error.message}`);
