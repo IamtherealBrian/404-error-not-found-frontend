@@ -133,8 +133,8 @@ function Person({ person, onUpdate, onDelete }) {
                 <h2>{name}</h2>
                 <p>Email: {email}</p>
             </Link>
-            <button onClick={() => onUpdate(person)}>Update</button>  {/* 保持不变 */}
-            <button onClick={() => onDelete(email)}>Delete</button>   {/* 直接删除 */}
+            <button onClick={() => onUpdate(person)}>Update</button>
+            <button onClick={() => onDelete(email)}>Delete</button>
         </div>
     );
 }
