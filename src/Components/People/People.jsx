@@ -17,11 +17,15 @@ function AddPersonForm({
 }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [affiliation, setAffiliation] = useState('');
+  const [roles, setRoles] = useState('');
 
   const changeName = (event) => { setName(event.target.value); };
   const changeEmail = (event) => { setEmail(event.target.value); };
+  const changeAffiliation = (event) => { setAffiliation(event.target.value); };
+  const changeRoles = (event) => { setRoles(event.target.value); };
 
-  // const addPerson = (event) => {
+    // const addPerson = (event) => {
   //   event.preventDefault();
   //   const newPerson = {
   //     name: name,
@@ -68,8 +72,8 @@ function AddPersonForm({
       const newPerson = {
           name: name,
           email: email,
-          roles: "ED",
-          affiliation: "nyu"
+          roles: roles || "",
+          affiliation: affiliation || ""
       };
 
       try {
@@ -90,27 +94,34 @@ function AddPersonForm({
   if (!visible) return null;
 
   return (
-    <form>
-      <label htmlFor="name">Name</label>
-      <input required type="text" id="name" value={name} onChange={changeName} />
+      <form>
+          <label htmlFor="name">Name</label>
+          <input required type="text" id="name" value={name} onChange={changeName}/>
 
-      <label htmlFor="email">Email</label>
-      <input required type="text" id="email" value={email} onChange={changeEmail} />
+          <label htmlFor="email">Email</label>
+          <input required type="text" id="email" value={email} onChange={changeEmail}/>
 
-      <button type="button" onClick={cancel} disabled={loading}>
-        Cancel
-      </button>
-      <button type="submit" onClick={addPerson} disabled={loading}>
-        {loading ? "Submitting..." : "Submit"}
-      </button>
-    </form>
+          <label htmlFor="affiliation">Affiliation</label>
+          <input required type="text" id="affiliation" value={affiliation} onChange={changeAffiliation}/>
+
+          <label htmlFor="roles">Roles</label>
+          <input required type="text" id="roles" value={roles} onChange={changeRoles}/>
+
+          <button type="button" onClick={cancel} disabled={loading}>
+              Cancel
+          </button>
+          <button type="submit" onClick={addPerson} disabled={loading}>
+              {loading ? "Submitting..." : "Submit"}
+          </button>
+      </form>
   );
 
 }
+
 AddPersonForm.propTypes = {
-  visible: propTypes.bool.isRequired,
-  cancel: propTypes.func.isRequired,
-  fetchPeople: propTypes.func.isRequired,
+    visible: propTypes.bool.isRequired,
+    cancel: propTypes.func.isRequired,
+    fetchPeople: propTypes.func.isRequired,
   setError: propTypes.func.isRequired,
 };
 
@@ -126,12 +137,14 @@ ErrorMessage.propTypes = {
 };
 
 function Person({ person, onUpdate, onDelete }) {
-    const { name, email } = person;
+    const { name, email, affiliation, roles } = person;
     return (
         <div className="person-container">
             <Link to={name}>
                 <h2>{name}</h2>
                 <p>Email: {email}</p>
+                <p>Affiliation: {affiliation}</p>
+                <p>Roles: {roles}</p>
             </Link>
             <button onClick={() => onUpdate(person)}>Update</button>
             <button onClick={() => onDelete(email)}>Delete</button>
@@ -143,6 +156,8 @@ Person.propTypes = {
     person: propTypes.shape({
         name: propTypes.string.isRequired,
         email: propTypes.string.isRequired,
+        affiliation: propTypes.string.isRequired,
+        roles: propTypes.string.isRequired,
     }).isRequired,
     onUpdate: propTypes.func.isRequired,
     onDelete: propTypes.func.isRequired,
