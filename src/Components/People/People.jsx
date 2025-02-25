@@ -132,11 +132,12 @@ function Person({ person, onUpdate, onDelete }) {
                 <h2>{name}</h2>
                 <p>Email: {email}</p>
             </Link>
-            <button onClick={() => onUpdate(person)}>Update</button>
-            <button onClick={() => onDelete(person.email)}>Delete</button>
+            <button onClick={() => onUpdate(person)}>Update</button>  {/* 保持不变 */}
+            <button onClick={() => onDelete(email)}>Delete</button>   {/* 直接删除 */}
         </div>
     );
 }
+
 Person.propTypes = {
     person: propTypes.shape({
         name: propTypes.string.isRequired,
@@ -156,8 +157,6 @@ function People() {
   const [error, setError] = useState('');
   const [people, setPeople] = useState([]);
   const [addingPerson, setAddingPerson] = useState(false);
-  const [deletingPerson, setDeletingPerson] = useState(false);
-  const [deleteEmail, setDeleteEmail] = useState('');
   const [updatingPerson, setUpdatingPerson] = useState(false);
   const [updateEmail, setUpdateEmail] = useState('');
   const [updateName, setUpdateName] = useState('');
@@ -172,8 +171,7 @@ function People() {
    setUpdateRole(person.roles || '');
  };
   const handleDelete = (email) => {
-      setDeletingPerson(true);
-      setDeleteEmail(email);
+      deletePerson(email);
   };
 
   // const fetchPeople = () => {
@@ -222,27 +220,24 @@ function People() {
             });
     };
 
-    const deletePerson = (event) => {
-        event.preventDefault();
-        if (!deleteEmail) {
-            setError('Please enter an email to delete.');
+    const deletePerson = (email) => {
+        if (!email) {
+            setError('Invalid email for deletion.');
             return;
         }
-
         axios.delete(PEOPLE_DELETE_ENDPOINT, {
-            data: { email: deleteEmail },
+            data: { email },
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         })
             .then(() => {
-                setDeleteEmail('');
-                setDeletingPerson(false);
                 fetchPeople();
             })
             .catch((error) => {
                 console.error("DELETE request failed:", error.response?.data || error);
+                setError(`There was a problem deleting the person. ${error.response?.data?.message || error.message}`);
             });
     };
 
@@ -261,14 +256,6 @@ function People() {
                 <div style={{display: "flex", flexDirection: "column", alignItems: "start", gap: "10px"}}>
                     <button type="button" onClick={showAddPersonForm}>
                         Add a Person
-                    </button>
-
-                    <button type="button" onClick={() => setDeletingPerson(true)}>
-                        Delete a Person
-                    </button>
-
-                    <button type="button" onClick={() => setUpdatingPerson(true)}>
-                        Update a Person
                     </button>
                 </div>
             </header>
@@ -290,21 +277,6 @@ function People() {
                      onDelete={handleDelete}
                    />
                  ))}
-
-            {deletingPerson && (
-                <form onSubmit={deletePerson}>
-                <label htmlFor="delete-email">Enter Email to Delete:</label>
-                    <input
-                        type="email"
-                        id="delete-email"
-                        value={deleteEmail}
-                        onChange={(e) => setDeleteEmail(e.target.value)}
-                        required
-                    />
-                    <button type="button" onClick={() => setDeletingPerson(false)}>Cancel</button>
-                    <button type="submit">Submit</button>
-                </form>
-            )}
 
             {updatingPerson && (
                 <form onSubmit={updatePerson} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
