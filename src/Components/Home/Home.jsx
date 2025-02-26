@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Home.css';
 
+
 function Home() {
+    const navigate = useNavigate();
     return (
         <div className="home-container">
             <header className="home-header">
@@ -14,10 +17,19 @@ function Home() {
                 <p>Write about your journey, keep track of your experiences, and share insights.</p>
             </section>
 
+            {/*<section className="home-actions">*/}
+            {/*    <button className="journal-button">Start Writing</button>*/}
+            {/*    <button className="browse-button">Browse Journals</button>*/}
+            {/*</section>*/}
             <section className="home-actions">
-                <button className="journal-button">Start Writing</button>
-                <button className="browse-button">Browse Journals</button>
+                <button className="journal-button" onClick={() => navigate('/write')}>
+                    Start Writing
+                </button>
+                <button className="browse-button" onClick={() => navigate('/browse')}>
+                    Browse Journals
+                </button>
             </section>
+
         </div>
     );
 }
