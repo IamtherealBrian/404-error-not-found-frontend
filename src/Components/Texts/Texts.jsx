@@ -3,8 +3,6 @@ import propTypes from 'prop-types';
 import axios from 'axios';
 import { BACKEND_URL } from '../../constants';
 
-
-
 const TEXT_READ_ENDPOINT = `${BACKEND_URL}/text`;
 const TEXT_CREATE_ENDPOINT = `${BACKEND_URL}/text`;
 const TEXT_DELETE_ENDPOINT = `${BACKEND_URL}/text/delete`;
@@ -142,12 +140,9 @@ function Texts() {
             const { data } = await axios.get(TEXT_READ_ENDPOINT);
             console.log("Fetched raw data:", data); // Debug log
 
-            let textsArray = Array.isArray(data) ? data : textsObjectToArray(data);
-
-            const uniqueTexts = Array.from(new Map(textsArray.map(item => [item.key, item])).values());
-
-            console.log("Processed unique texts:", uniqueTexts); // Debug log
-            setTexts(uniqueTexts);
+            const textsArray = Array.isArray(data) ? data : textsObjectToArray(data);
+            console.log("Processed unique texts:", textsArray); // Debug log
+            setTexts(textsArray);
         } catch (err) {
             setError(`There was a problem retrieving the texts. ${err}`);
         } finally {
