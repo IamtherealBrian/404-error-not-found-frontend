@@ -6,7 +6,7 @@ import './Home.css';
 function Home() {
     const navigate = useNavigate();
     return (
-        <div className="home-container">
+        <div className="home-container" role="main">
             <header className="home-header">
                 <h1>📖 Welcome to Your Journal</h1>
                 <p>Document your thoughts, ideas, and experiences all in one place.</p>
@@ -21,14 +21,33 @@ function Home() {
             {/*    <button className="journal-button">Start Writing</button>*/}
             {/*    <button className="browse-button">Browse Journals</button>*/}
             {/*</section>*/}
+
+            {/*<section className="home-actions">*/}
+            {/*    <button className="journal-button" onClick={() => navigate('/write')}>*/}
+            {/*        Start Writing*/}
+            {/*    </button>*/}
+            {/*    <button className="browse-button" onClick={() => navigate('/browse')}>*/}
+            {/*        Browse Journals*/}
+            {/*    </button>*/}
+            {/*</section>*/}
+
             <section className="home-actions">
-                <button className="journal-button" onClick={() => navigate('/write')}>
+                <button
+                    className="journal-button"
+                    onClick={() => navigate('/write')}
+                    aria-label="Start a new journal entry"
+                >
                     Start Writing
                 </button>
-                <button className="browse-button" onClick={() => navigate('/browse')}>
+                <button
+                    className="browse-button"
+                    onClick={() => navigate('/browse')}
+                    aria-label="Browse past journal entries"
+                >
                     Browse Journals
                 </button>
             </section>
+
 
         </div>
     );
