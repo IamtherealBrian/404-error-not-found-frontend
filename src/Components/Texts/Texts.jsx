@@ -78,28 +78,33 @@ AddTextForm.propTypes = {
   setError: propTypes.func.isRequired,
 };
 
-// Component to render an individual text entry
 function TextItem({ text, fetchTexts }) {
-  // Destructure the properties of the text entry.
-  const { key, title, text: content } = text;
+    console.log("Rendering TextItem, key:", text.key); // Debug log
 
-  const deleteText = () => {
-    axios
-      .delete(TEXT_DELETE_ENDPOINT, { data: { key } })
-      .then(fetchTexts)
-      .catch((error) => {
-        console.error('There was a problem deleting the text.', error);
-      });
-  };
+    const deleteText = () => {
+        console.log("Attempting to delete key:", text.key); // Debug log
+        if (!text.key || text.key === "undefined") {
+            console.error("Error: key is undefined!");
+            return;
+        }
+        axios
+            .delete(`${TEXT_DELETE_ENDPOINT}?key=${encodeURIComponent(text.key)}`)
+            .then(fetchTexts)
+            .catch((error) => {
+                console.error("Delete request failed:", error.response ? error.response.data : error.message);
+            });
+    };
 
-  return (
-    <div className="text-item">
-      <h2>{title}</h2>
-      <p>{content}</p>
-      <button onClick={deleteText}>Delete Text</button>
-    </div>
-  );
+    return (
+        <div className="text-item">
+            <h2>{text.title}</h2>
+            <p>{text.text}</p>
+            <button onClick={deleteText}>Delete Text</button>
+        </div>
+    );
 }
+
+
 
 TextItem.propTypes = {
   text: propTypes.shape({
@@ -135,11 +140,14 @@ function Texts() {
         setLoading(true);
         try {
             const { data } = await axios.get(TEXT_READ_ENDPOINT);
-            if (Array.isArray(data)) {
-                setTexts(data);
-            } else {
-                setTexts(textsObjectToArray(data));
-            }
+            console.log("Fetched raw data:", data); // Debug log
+
+            let textsArray = Array.isArray(data) ? data : textsObjectToArray(data);
+
+            const uniqueTexts = Array.from(new Map(textsArray.map(item => [item.key, item])).values());
+
+            console.log("Processed unique texts:", uniqueTexts); // Debug log
+            setTexts(uniqueTexts);
         } catch (err) {
             setError(`There was a problem retrieving the texts. ${err}`);
         } finally {
