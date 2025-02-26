@@ -4,7 +4,8 @@ import axios from 'axios';
 import { BACKEND_URL } from '../../constants';
 
 
-const TEXT_READ_ENDPOINT = `${BACKEND_URL}/text`;
+
+const TEXT_READ_ENDPOINT = `${BACKEND_URL}/text/read`;
 const TEXT_CREATE_ENDPOINT = `${BACKEND_URL}/text`;
 const TEXT_DELETE_ENDPOINT = `${BACKEND_URL}/text/delete`;
 
