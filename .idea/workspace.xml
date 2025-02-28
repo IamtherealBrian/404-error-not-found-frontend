@@ -5,11 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="03dd3cc5-e52d-4b15-a70e-0b9e51de1961" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Components/Write/Write.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Components/Write/Write.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Components/Write/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Components/Home/Home.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/Components/Home/Home.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Components/Navbar/Navbar.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/Components/Navbar/Navbar.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Components/Write/Write.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/Components/Write/Write.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Components/Write/Write.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/Components/Write/Write.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,7 +85,7 @@
       <workItem from="1738219726850" duration="4112000" />
       <workItem from="1740354746779" duration="496000" />
       <workItem from="1740355246180" duration="2486000" />
-      <workItem from="1740743628335" duration="1469000" />
+      <workItem from="1740743628335" duration="4206000" />
     </task>
     <servers />
   </component>

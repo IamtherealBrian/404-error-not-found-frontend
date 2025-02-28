@@ -98,49 +98,58 @@ nav {
   margin: 0;
   padding-top: 0.5rem;
   background-color: var(--accent-color);
+  position: relative;
+  z-index: 1000;
 }
 
-nav ul {
+/* The nav-list is set to display flex, creating a horizontal layout */
+.nav-list {
   list-style: none;
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 2rem;
   padding: 0;
+  margin: 0 auto;
+}
+
+.nav-list li {
+  margin: 0;
 }
 
 nav a {
   color: var(--background-color);
   display: block;
-  --padding: 1rem;
-  padding: var(--padding);
+  padding: 1rem;
   text-decoration: none;
   font-weight: bold;
-  --border-radius: 15px;
   border-radius: 5px 5px 0 0;
   position: relative;
 }
+
 nav a:hover::before,
 nav a:focus::before {
   content: '';
   position: absolute;
-  width: var(--border-radius);
-  height: var(--border-radius);
+  width: 15px;
+  height: 15px;
   border-radius: 0 0 100vw 0;
   box-shadow: 5px 5px 0 5px var(--background-color);
   background-color: var(--accent-color);
   bottom: 0;
-  left: calc(var(--padding) * -1 + 1px);
+  left: calc(1rem * -1 + 1px);
 }
 nav a:hover::after,
 nav a:focus::after {
   content: '';
   position: absolute;
-  width: var(--border-radius);
-  height: var(--border-radius);
+  width: 15px;
+  height: 15px;
   border-radius: 0 0 0 100vw;
   box-shadow: -5px 5px 0 5px var(--background-color);
   background-color: var(--accent-color);
   bottom: 0;
-  right: calc(var(--padding) * -1 + 1px);
+  right: calc(1rem * -1 + 1px);
 }
 
 nav a:hover,

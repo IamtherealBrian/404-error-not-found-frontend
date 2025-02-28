@@ -1,10 +1,11 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
-import Navbar from './Components/Navbar';
+import Navbar from './Components/Navbar/Navbar';
 import Home from './Components/Home/Home';
 import Write from './Components/Write/Write';
 import Texts from './Components/Texts';
 import People from './Components/People/People';
+import './App.css';
 
 function PersonPage() {
     const { name } = useParams();
