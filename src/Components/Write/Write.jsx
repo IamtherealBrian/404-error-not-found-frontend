@@ -5,7 +5,18 @@ const Write = () => {
     const [entry, setEntry] = useState('');
     const [showPlaceholder, setShowPlaceholder] = useState(true);
 
+    // const handleSubmit = () => {
+    //     alert('Journal entry submitted!');
+    //     setEntry('');
+    //     setShowPlaceholder(true);
+    // };
     const handleSubmit = () => {
+        // 1) Prevent empty submissions
+        if (entry.trim().length === 0) {
+            alert('Please write something before submitting!');
+            return;
+        }
+
         alert('Journal entry submitted!');
         setEntry('');
         setShowPlaceholder(true);
