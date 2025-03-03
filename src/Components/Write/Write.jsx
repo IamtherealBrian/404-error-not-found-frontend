@@ -12,15 +12,17 @@ const Write = () => {
     return (
         <div className="write-container">
             <h1>New Journal Entry ✍️</h1>
-            <textarea
-                placeholder="Write your thoughts here..."
-                value={entry}
-                onChange={(e) => setEntry(e.target.value)}
-                className="journal-input"
-            />
-            <button className="submit-entry" onClick={handleSubmit}>
-                Submit
-            </button>
+            <div className="journal-section">
+                <textarea
+                    placeholder="Write your thoughts here..."
+                    value={entry}
+                    onChange={(e) => setEntry(e.target.value)}
+                    className="journal-input"
+                />
+                <button className="submit-entry" onClick={handleSubmit}>
+                    Submit
+                </button>
+            </div>
         </div>
     );
 };
