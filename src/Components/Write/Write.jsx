@@ -44,6 +44,12 @@ const Write = () => {
                     onBlur={handleBlur}
                     className="journal-input"
                 />
+
+                {/* 2) Add a character count display */}
+                <div className="character-count">
+                    Characters: {entry.length}
+                </div>
+
                 <button className="submit-entry" onClick={handleSubmit}>
                     Submit
                 </button>
