@@ -29,7 +29,7 @@ function Home() {
                 </button>
                 <button
                     className="browse-button"
-                    onClick={() => navigate('/browse')}
+                    onClick={() => navigate('/people')}
                     aria-label="Browse past journal entries"
                 >
                     Browse Journals
