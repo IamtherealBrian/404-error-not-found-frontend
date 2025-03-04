@@ -67,26 +67,55 @@ function AddPersonForm({
   const [loading, setLoading] = useState(false);
   const addPerson = async (event) => {
       event.preventDefault();
-      setLoading(true);  // Set loading state to prevent multiple submissions
+      setLoading(true);
+      setError('');
 
+      // Format the data exactly as expected by the backend
       const newPerson = {
-          name: name,
-          email: email,
-          roles: roles || "",
-          affiliation: affiliation || ""
+          name: name.trim(),
+          email: email.trim(),
+          roles: roles.trim(),
+          affiliation: affiliation.trim()
       };
 
       try {
-          await axios.post(PEOPLE_CREATE_ENDPOINT, newPerson, {
-              headers: { "Content-Type": "application/json", "Accept": "application/json" }
+          console.log('Sending request to:', PEOPLE_CREATE_ENDPOINT);
+          console.log('Request data:', newPerson);
+          const response = await axios.post(PEOPLE_CREATE_ENDPOINT, newPerson, {
+              headers: { 
+                  "Content-Type": "application/json",
+                  "Accept": "application/json"
+              },
+              // Remove withCredentials to avoid CORS preflight issues
+              validateStatus: function (status) {
+                  return status < 500; // Accept any status code less than 500
+              }
           });
-          fetchPeople();  // Refresh the list after successful addition
-          cancel();
+          
+          if (response.status === 200 || response.status === 201) {
+              console.log('Success response:', response);
+              fetchPeople();
+              cancel();
+          } else {
+              console.warn('Unexpected status code:', response.status);
+              setError(`Unexpected response from server: ${response.status} ${response.statusText}`);
+          }
       } catch (error) {
-          console.error("POST request failed:", error.response?.data || error);
-          setError(`There was a problem adding the person. ${error.response?.data?.message || error.message}`);
+          console.error("POST request failed:", error);
+          if (error.response) {
+              console.error("Error status:", error.response.status);
+              console.error("Error headers:", error.response.headers);
+              console.error("Error data:", error.response.data);
+              setError(`Server error (${error.response.status}): ${error.response.data?.message || error.response.statusText}`);
+          } else if (error.request) {
+              console.error("No response received:", error.request);
+              setError('No response received from server. Please check if the API is running and accessible.');
+          } else {
+              console.error("Error details:", error);
+              setError(`Error: ${error.message}`);
+          }
       } finally {
-          setLoading(false);  // Reset loading state after request completion
+          setLoading(false);
       }
   };
 
