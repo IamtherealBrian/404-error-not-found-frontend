@@ -12,11 +12,12 @@ const PAGES = [
 function NavLink({ page }) {
   const { label, destination } = page;
   return (
-    <li>
-      <Link to={destination}>{label}</Link>
-    </li>
+      <li>
+        <Link to={destination}>{label}</Link>
+      </li>
   );
 }
+
 NavLink.propTypes = {
   page: propTypes.shape({
     label: propTypes.string.isRequired,
@@ -26,11 +27,13 @@ NavLink.propTypes = {
 
 function Navbar() {
   return (
-    <nav>
-      <ul className="wrapper">
-        {PAGES.map((page) => <NavLink key={page.destination} page={page} />)}
-      </ul>
-    </nav>
+      <nav>
+        <ul className="nav-list"> {/* <-- This line corrected from wrapper to nav-list */}
+          {PAGES.map((page) => (
+              <NavLink key={page.destination} page={page} />
+          ))}
+        </ul>
+      </nav>
   );
 }
 
