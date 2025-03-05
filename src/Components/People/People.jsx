@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
  
 import { BACKEND_URL } from '../../constants';
+import './People.css';
 
 const PEOPLE_READ_ENDPOINT = `${BACKEND_URL}/people`;
 const PEOPLE_CREATE_ENDPOINT = `${BACKEND_URL}/people`;
