@@ -32,6 +32,10 @@ const Write = () => {
         }
     };
 
+    const countWords = (text) => {
+        return text.trim().length > 0 ? text.trim().split(/\s+/).length : 0;
+    };
+
     return (
         <div className="write-container">
             <h1>New Journal Entry ✍️</h1>
@@ -50,6 +54,9 @@ const Write = () => {
                     Characters: {entry.length}
                 </div>
 
+                <div className="word-count">
+                    Words: {countWords(entry)}
+                </div>
                 <button className="submit-entry" onClick={handleSubmit}>
                     Submit
                 </button>
