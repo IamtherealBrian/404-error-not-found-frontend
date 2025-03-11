@@ -20,4 +20,11 @@ describe('People component', () => {
         expect(textboxes).toHaveLength(0);
     });
 
+    test('3) textbox appear after clicking the button', async () => {
+        render(<People />);
+        await userEvent.click(screen.getByText(/add a person/i));
+        const textboxes = await screen.findAllByRole('textbox');
+        expect(textboxes).toHaveLength(4);
+    });
+
 });
