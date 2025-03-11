@@ -36,6 +36,11 @@ const Write = () => {
         return text.trim().length > 0 ? text.trim().split(/\s+/).length : 0;
     };
 
+    const handleClear = () => {
+        setEntry('');
+        setShowPlaceholder(true);
+    };
+
     return (
         <div className="write-container">
             <h1>New Journal Entry ✍️</h1>
@@ -59,6 +64,9 @@ const Write = () => {
                 </div>
                 <button className="submit-entry" onClick={handleSubmit}>
                     Submit
+                </button>
+                <button className="clear-entry" onClick={handleClear}>
+                    Clear
                 </button>
             </div>
         </div>
