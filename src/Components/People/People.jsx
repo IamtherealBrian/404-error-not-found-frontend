@@ -26,45 +26,6 @@ function AddPersonForm({
   const changeAffiliation = (event) => { setAffiliation(event.target.value); };
   const changeRoles = (event) => { setRoles(event.target.value); };
 
-    // const addPerson = (event) => {
-  //   event.preventDefault();
-  //   const newPerson = {
-  //     name: name,
-  //     email: email,
-  //     roles: "ED",
-  //     affiliation: "nyu"
-  //   };
-  //
-  //   axios.post(PEOPLE_CREATE_ENDPOINT, newPerson, {
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       "Accept": "application/json"
-  //     }
-  //   })
-  //       .then(fetchPeople)
-  //       .catch((error) => {
-  //         console.error("PUT request failed:", error.response?.data || error);
-  //         setError(`There was a problem adding the person. ${error.response?.data?.message || error.message}`);
-  //       });
-  // };
-    //
-
-  // if (!visible) return null;
-  // return (
-  //   <form>
-  //     <label htmlFor="name">
-  //       Name
-  //     </label>
-  //     <input required type="text" id="name" value={name} onChange={changeName} />
-  //     <label htmlFor="email">
-  //       Email
-  //     </label>
-  //     <input required type="text" id="email" onChange={changeEmail} />
-  //     <button type="button" onClick={cancel}>Cancel</button>
-  //     <button type="submit" onClick={addPerson}>Submit</button>
-  //   </form>
-  // );
-
   const [loading, setLoading] = useState(false);
   const addPerson = async (event) => {
       event.preventDefault();
