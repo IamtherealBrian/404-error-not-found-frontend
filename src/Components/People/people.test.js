@@ -13,4 +13,11 @@ describe('People component', () => {
         ).toBeInTheDocument();
         expect(screen.getByText(/add a person/i)).toBeInTheDocument();
     });
+
+    test('2) no textbox before clicking any button', () => {
+        render(<People />);
+        const textboxes = screen.queryAllByRole('textbox');
+        expect(textboxes).toHaveLength(0);
+    });
+
 });
