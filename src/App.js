@@ -6,6 +6,7 @@ import Write from './Components/Write/Write';
 import Texts from './Components/Texts';
 import People from './Components/People/People';
 import './App.css';
+import LoginPage from './Components/Login/LoginPage';
 
 function PersonPage() {
     const { name } = useParams();
@@ -22,6 +23,7 @@ function App() {
                 <Route path="/people/:name" element={<PersonPage />} />
                 <Route path="/texts" element={<Texts />} />
                 <Route path="/people" element={<People />} />
+                <Route path="/login" element={<LoginPage />} />  {/* 添加登录页面路由 */}
             </Routes>
         </BrowserRouter>
     );
