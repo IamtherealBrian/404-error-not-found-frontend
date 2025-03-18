@@ -1,29 +1,40 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import Navbar from './Components/Navbar/Navbar';
 import Home from './Components/Home/Home';
 import Write from './Components/Write/Write';
 import Texts from './Components/Texts';
 import People from './Components/People/People';
-import './App.css';
 import LoginPage from './Components/Login/LoginPage';
+import './App.css';
 
 function PersonPage() {
-    const { name } = useParams();
-    return <h1>{name}</h1>;
+    return <h1>Person Page</h1>;
 }
 
+function ProtectedRoute({ element, isAuthenticated }) {
+    return isAuthenticated ? element : <Navigate to="/login" />;
+}
+
+ProtectedRoute.propTypes = {
+    element: PropTypes.node.isRequired,
+    isAuthenticated: PropTypes.bool.isRequired,
+};
+
 function App() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     return (
         <BrowserRouter>
             <Navbar />
             <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/write" element={<Write />} />
-                <Route path="/people/:name" element={<PersonPage />} />
-                <Route path="/texts" element={<Texts />} />
-                <Route path="/people" element={<People />} />
-                <Route path="/login" element={<LoginPage />} />  {/* 添加登录页面路由 */}
+                <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
+                // Forced to go to login if isAuthenticated is false
+                <Route path="/" element={<ProtectedRoute element={<Home />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/write" element={<ProtectedRoute element={<Write />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/people/:name" element={<ProtectedRoute element={<PersonPage />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/texts" element={<ProtectedRoute element={<Texts />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/people" element={<ProtectedRoute element={<People />} isAuthenticated={isAuthenticated} />} />
             </Routes>
         </BrowserRouter>
     );

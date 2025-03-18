@@ -1,87 +1,75 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
+import axios from "axios";
+import { BACKEND_URL } from "../../constants";
 
-const LoginPage = () => {
+const PEOPLE_READ_ENDPOINT = `${BACKEND_URL}/people`;
+
+const LoginPage = ({ setIsAuthenticated }) => {
     const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
+    const [error, setError] = useState("");
+    const [people, setPeople] = useState([]);
     const navigate = useNavigate();
+
+    const fetchPeople = async () => {
+        try {
+            const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
+            setPeople(Object.values(data));
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    useEffect(() => {
+        fetchPeople();
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("User logged in:", { email, password });
-        navigate("/");
-    };
+        setError("");
 
-    // Container uses a green-themed gradient
-    const containerStyle = {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        background: "linear-gradient(to right, #8CC152, #009444)",
-    };
+        const userExists = people.some(person => person.email === email.trim() && person.name === name.trim());
 
-    // Form styling
-    const formStyle = {
-        backgroundColor: "white",
-        padding: "40px",
-        borderRadius: "8px",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-        width: "300px",
-    };
-
-    // Input styling
-    const inputStyle = {
-        padding: "10px",
-        border: "1px solid #ddd",
-        borderRadius: "4px",
-        fontSize: "16px",
-    };
-
-    // Button with a green color to match the theme
-    const buttonStyle = {
-        padding: "10px",
-        border: "none",
-        borderRadius: "4px",
-        backgroundColor: "#009444",
-        color: "white",
-        fontSize: "16px",
-        cursor: "pointer",
-    };
-
-    const titleStyle = {
-        textAlign: "center",
-        marginBottom: "10px",
-        fontFamily: "sans-serif",
+        if (userExists) {
+            setIsAuthenticated(true);
+            navigate("/");
+        } else {
+            setError("Fail to login");
+        }
     };
 
     return (
-        <div style={containerStyle}>
-            <form onSubmit={handleSubmit} style={formStyle}>
-                <h2 style={titleStyle}>Login</h2>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "linear-gradient(to right, #8CC152, #009444)" }}>
+            <form onSubmit={handleSubmit} style={{ backgroundColor: "white", padding: "40px", borderRadius: "8px", boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", display: "flex", flexDirection: "column", gap: "20px", width: "300px" }}>
+                <h2 style={{ textAlign: "center", marginBottom: "10px", fontFamily: "sans-serif" }}>Login</h2>
+                {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
+
                 <input
-                    style={inputStyle}
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email"
                     required
+                    style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontSize: "16px" }}
                 />
                 <input
-                    style={inputStyle}
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Name"
                     required
+                    style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontSize: "16px" }}
                 />
-                <button type="submit" style={buttonStyle}>Login</button>
+                <button type="submit" style={{ padding: "10px", border: "none", borderRadius: "4px", backgroundColor: "#009444", color: "white", fontSize: "16px", cursor: "pointer" }}>Login</button>
             </form>
         </div>
     );
+};
+
+LoginPage.propTypes = {
+    setIsAuthenticated: PropTypes.func.isRequired,
 };
 
 export default LoginPage;
