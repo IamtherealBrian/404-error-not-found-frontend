@@ -10,7 +10,7 @@ const LoginPage = ({ setIsAuthenticated }) => {
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [error, setError] = useState("");
-    const [password, setPassword] = useState("");
+    //const [password, setPassword] = useState("");
     const [people, setPeople] = useState([]);
     const navigate = useNavigate();
 
@@ -30,12 +30,12 @@ const LoginPage = ({ setIsAuthenticated }) => {
         e.preventDefault();
         setError("");
 
-        const user = people.find( //(person => person.email === email.trim() && person.name === name.trim());
-        (person) =>
-            person.email === email.trim() &&
-            person.name === name.trim() &&
-            person.password === password.trim()
-        );
+        const user = people.find(person => person.email === email.trim() && person.name === name.trim());
+        // (person) =>
+        //     person.email === email.trim() &&
+        //     person.name === name.trim() &&
+        //     person.password === password.trim()
+        // );
         if (user) {
             localStorage.setItem("username", user.name);
             setIsAuthenticated(true);
@@ -76,14 +76,14 @@ const LoginPage = ({ setIsAuthenticated }) => {
                     required
                     style={{padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontSize: "16px"}}
                 />
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    required
-                    style={{padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontSize: "16px"}}
-                />
+                {/*<input*/}
+                {/*    type="password"*/}
+                {/*    value={password}*/}
+                {/*    onChange={(e) => setPassword(e.target.value)}*/}
+                {/*    placeholder="Password"*/}
+                {/*    required*/}
+                {/*    style={{padding: "10px", border: "1px solid #ddd", borderRadius: "4px", fontSize: "16px"}}*/}
+                {/*/>*/}
                 <button type="submit" style={{
                     padding: "10px",
                     border: "none",
