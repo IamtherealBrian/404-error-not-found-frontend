@@ -1,9 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
+import PropTypes from 'prop-types';
 
-function Home() {
+function Home({ isAuthenticated, setIsAuthenticated }) {
     const navigate = useNavigate();
+    const username = localStorage.getItem("username");
+
+    const handleLogout = () => {
+        localStorage.removeItem("username");
+        setIsAuthenticated(false);
+        navigate("/login");
+    };
+
     return (
         <div className="home-container" role="main">
             <header className="home-header">
@@ -35,8 +44,22 @@ function Home() {
                     Browse Journals
                 </button>
             </section>
+
+            {isAuthenticated && (
+                <section className="auth-section">
+                    <p>Login as <strong>{username}</strong></p>
+                    <button className="logout-button" onClick={handleLogout}>
+                        Logout
+                    </button>
+                </section>
+            )}
         </div>
     );
 }
+
+Home.propTypes = {
+    isAuthenticated: PropTypes.bool.isRequired,
+    setIsAuthenticated: PropTypes.func.isRequired,
+};
 
 export default Home;

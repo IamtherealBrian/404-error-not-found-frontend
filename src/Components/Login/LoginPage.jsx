@@ -13,16 +13,15 @@ const LoginPage = ({ setIsAuthenticated }) => {
     const [people, setPeople] = useState([]);
     const navigate = useNavigate();
 
-    const fetchPeople = async () => {
-        try {
-            const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
-            setPeople(Object.values(data));
-        } catch (error) {
-            setError(error.message);
-        }
-    };
-
     useEffect(() => {
+        const fetchPeople = async () => {
+            try {
+                const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
+                setPeople(Object.values(data));
+            } catch (error) {
+                setError("Unable to fetch users, please check your connection.");
+            }
+        };
         fetchPeople();
     }, []);
 
@@ -30,13 +29,14 @@ const LoginPage = ({ setIsAuthenticated }) => {
         e.preventDefault();
         setError("");
 
-        const userExists = people.some(person => person.email === email.trim() && person.name === name.trim());
+        const user = people.find(person => person.email === email.trim() && person.name === name.trim());
 
-        if (userExists) {
+        if (user) {
+            localStorage.setItem("username", user.name);
             setIsAuthenticated(true);
             navigate("/");
         } else {
-            setError("Fail to login");
+            setError("Invalid email or name. Please try again.");
         }
     };
 
