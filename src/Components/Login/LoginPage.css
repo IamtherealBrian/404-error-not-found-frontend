@@ -1,0 +1,52 @@
+/* 设置整个页面居中 */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to right, #8CC152, #009444);
+}
+
+/* 登录表单样式 */
+.login-form {
+    background-color: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 300px;
+}
+
+/* 标题样式 */
+.login-title {
+    text-align: center;
+    margin-bottom: 10px;
+    font-family: sans-serif;
+}
+
+/* 错误消息样式 */
+.login-error {
+    color: red;
+    text-align: center;
+}
+
+/* 输入框样式 */
+.login-input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* 按钮样式 */
+.login-button {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #009444;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
