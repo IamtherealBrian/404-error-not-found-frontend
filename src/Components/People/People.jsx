@@ -36,7 +36,7 @@ function AddPersonForm({
       const newPerson = {
           name: name.trim(),
           email: email.trim(),
-          roles: roles.trim(),
+          role: roles.trim(),
           affiliation: affiliation.trim()
       };
 
