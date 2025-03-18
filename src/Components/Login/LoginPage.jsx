@@ -20,7 +20,14 @@ const LoginPage = ({ setIsAuthenticated }) => {
                 const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
                 setPeople(Object.values(data));
             } catch (error) {
-                setError("Unable to fetch users, please check your connection.");
+                //setError("Unable to fetch users, please check your connection.");
+                if (error.response) {
+                    setError(`Fetch failed with status ${error.response.status}: ${error.response.data.message || 'Unknown server error.'}`);
+                } else if (error.request) {
+                    setError("No response received from server. Please check your connection or try again later.");
+                } else {
+                    setError(`An unexpected error occurred: ${error.message}`);
+                }
             }
         };
         fetchPeople();
