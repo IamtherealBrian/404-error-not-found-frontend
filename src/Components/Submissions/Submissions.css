@@ -1,0 +1,14 @@
+/* src/Components/Submissions/Submissions.css */
+.wrapper {
+    margin: 20px;
+}
+
+.submission-container {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.error-message {
+    color: red;
+}

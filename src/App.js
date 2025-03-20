@@ -7,6 +7,7 @@ import Write from './Components/Write/Write';
 import Texts from './Components/Texts';
 import People from './Components/People/People';
 import LoginPage from './Components/Login/LoginPage';
+import Submissions from './Components/Submissions/Submissions';
 import './App.css';
 
 function PersonPage() {
@@ -40,6 +41,7 @@ function App() {
                 <Route path="/people/:name" element={<ProtectedRoute element={<PersonPage />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/texts" element={<ProtectedRoute element={<Texts />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/people" element={<ProtectedRoute element={<People />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/submissions" element={<ProtectedRoute element={<Submissions />} isAuthenticated={isAuthenticated} />} />
             </Routes>
         </BrowserRouter>
     );
