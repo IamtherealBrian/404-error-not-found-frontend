@@ -135,7 +135,7 @@ function Person({ person, onUpdate, onDelete }) {
                 <h2>{name}</h2>
                 <p>Email: {email}</p>
                 <p>Affiliation: {affiliation}</p>
-                <p>Roles: {roles}</p>
+                <p>Roles: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
             </Link>
             <button onClick={() => onUpdate(person)}>Update</button>
             <button onClick={() => onDelete(email)}>Delete</button>
@@ -148,11 +148,12 @@ Person.propTypes = {
         name: propTypes.string.isRequired,
         email: propTypes.string.isRequired,
         affiliation: propTypes.string.isRequired,
-        roles: propTypes.string.isRequired,
+        roles: propTypes.oneOfType([propTypes.string, propTypes.array]).isRequired,
     }).isRequired,
     onUpdate: propTypes.func.isRequired,
     onDelete: propTypes.func.isRequired,
 };
+
 
 function peopleObjectToArray(Data) {
   const keys = Object.keys(Data);
@@ -170,22 +171,19 @@ function People() {
   const [updateAffiliation, setUpdateAffiliation] = useState('');
   const [updateRole, setUpdateRole] = useState('');
 
-  const handleUpdate = (person) => {
-   setUpdatingPerson(true);
-   setUpdateEmail(person.email);
-   setUpdateName(person.name);
-   setUpdateAffiliation(person.affiliation || '');
-   setUpdateRole(person.roles || '');
- };
+    const handleUpdate = (person) => {
+        setUpdatingPerson(true);
+        setUpdateEmail(person.email);
+        setUpdateName(person.name);
+        setUpdateAffiliation(person.affiliation || '');
+        setUpdateRole(Array.isArray(person.roles) ? person.roles.join(', ') : person.roles || '');
+    };
+
   const handleDelete = (email) => {
       deletePerson(email);
   };
 
-  // const fetchPeople = () => {
-  //   axios.get(PEOPLE_READ_ENDPOINT)
-  //     .then(({ data }) => { setPeople(peopleObjectToArray(data)) })
-  //     .catch((error) => setError(`There was a problem retrieving the list of people. ${error}`));
-  // };
+
   const fetchPeople = async () => {
     try {
         const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
@@ -211,8 +209,10 @@ function People() {
             email: updateEmail,
             name: updateName || undefined,
             affiliation: updateAffiliation || undefined,
-            role: updateRole || undefined
+            roles: updateRole ? updateRole.split(',').map(role => role.trim()) : []
         };
+
+        console.log('updateRole:', updateRole);
 
         axios.put(PEOPLE_READ_ENDPOINT, updatedData, {
             headers: { "Content-Type": "application/json", "Accept": "application/json" }
