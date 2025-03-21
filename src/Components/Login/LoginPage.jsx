@@ -27,6 +27,7 @@ const LoginPage = ({ setIsAuthenticated }) => {
             if (response.status === 200 || response.status === 201) {
                 localStorage.setItem("username", email.trim());
                 setIsAuthenticated(true);
+                // To refresh
                 navigate("/");
             }
         } catch (err) {
@@ -34,8 +35,6 @@ const LoginPage = ({ setIsAuthenticated }) => {
                 setError("Invalid email or password.");
             } else if (err.response?.status === 409) {
                 setError("User already exists.");
-            } else {
-                setError("Something went wrong. Please try again.");
             }
         }
     };
