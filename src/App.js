@@ -26,10 +26,13 @@ ProtectedRoute.propTypes = {
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("username"));
     useEffect(() => {
-        const checkAuth = () => setIsAuthenticated(!!localStorage.getItem("username"));
+        const checkAuth = () => {
+            setIsAuthenticated(!!localStorage.getItem("username"));
+        };
         window.addEventListener("storage", checkAuth);
         return () => window.removeEventListener("storage", checkAuth);
     }, []);
+
 
     return (
         <BrowserRouter>

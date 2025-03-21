@@ -1,5 +1,5 @@
 import React from 'react';
-import propTypes from 'prop-types';
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
 const PAGES = [
@@ -7,35 +7,39 @@ const PAGES = [
     { label: 'View All People', destination: '/people' },
     { label: 'View All Texts', destination: '/texts' },
     { label: 'View All Submissions', destination: '/submissions' },
-    { label: 'Login', destination: '/login' },
 ];
 
 function NavLink({ page }) {
-  const { label, destination } = page;
-  return (
-      <li>
-        <Link to={destination}>{label}</Link>
-      </li>
-  );
+    const { label, destination } = page;
+    return (
+        <li>
+            <Link to={destination}>{label}</Link>
+        </li>
+    );
 }
 
 NavLink.propTypes = {
-  page: propTypes.shape({
-    label: propTypes.string.isRequired,
-    destination: propTypes.string.isRequired,
-  }).isRequired,
+    page: PropTypes.shape({
+        label: PropTypes.string.isRequired,
+        destination: PropTypes.string.isRequired,
+    }).isRequired,
 };
 
-function Navbar() {
-  return (
-      <nav>
-        <ul className="nav-list"> {/* <-- This line corrected from wrapper to nav-list */}
-          {PAGES.map((page) => (
-              <NavLink key={page.destination} page={page} />
-          ))}
-        </ul>
-      </nav>
-  );
+function Navbar({ isAuthenticated }) {
+    return (
+        <nav>
+            <ul className="nav-list">
+                {PAGES.filter(page => !(isAuthenticated && page.label === "Login"))
+                    .map((page) => (
+                        <NavLink key={page.destination} page={page} />
+                    ))}
+            </ul>
+        </nav>
+    );
 }
+
+Navbar.propTypes = {
+    isAuthenticated: PropTypes.bool.isRequired,
+};
 
 export default Navbar;
