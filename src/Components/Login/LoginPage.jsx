@@ -11,10 +11,12 @@ const LoginPage = ({ setIsAuthenticated }) => {
     const [error, setError] = useState("");
     const [isLoginMode, setIsLoginMode] = useState(true);
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+        setIsLoading(true);
 
         const endpoint = isLoginMode ? "/login" : "/register";
 
@@ -36,6 +38,8 @@ const LoginPage = ({ setIsAuthenticated }) => {
             } else if (err.response?.status === 409) {
                 setError("User already exists.");
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -75,8 +79,12 @@ const LoginPage = ({ setIsAuthenticated }) => {
                     className="login-input"
                 />
 
-                <button type="submit" className="login-button">
-                    {isLoginMode ? "Login" : "Register"}
+                {/*<button type="submit" className="login-button">*/}
+                {/*    {isLoginMode ? "Login" : "Register"}*/}
+                {/*</button>*/}
+
+                <button type="submit" className="login-button" disabled={isLoading}>
+                    {isLoading ? "Loading..." : isLoginMode ? "Login" : "Register"}
                 </button>
 
                 <p className="login-toggle">
