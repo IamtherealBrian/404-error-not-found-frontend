@@ -48,7 +48,17 @@ const LoginPage = ({ setIsAuthenticated }) => {
 
                 {error && <p className="login-error">{error}</p>}
 
+                {/*<input*/}
+                {/*    type="email"*/}
+                {/*    value={email}*/}
+                {/*    onChange={(e) => setEmail(e.target.value)}*/}
+                {/*    placeholder="Email"*/}
+                {/*    required*/}
+                {/*    className="login-input"*/}
+                {/*/>*/}
+                <label htmlFor="email" className="login-label">Email</label>
                 <input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
