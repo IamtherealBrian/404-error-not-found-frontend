@@ -3,7 +3,13 @@ import axios from 'axios';
 import { BACKEND_URL } from '../../constants';
 import './Masthead.css';
 
-const MASTHEAD_READ_ENDPOINT = `${BACKEND_URL}/people/masthead`;
+// Use the standard people endpoint instead of a special masthead endpoint
+const PEOPLE_READ_ENDPOINT = `${BACKEND_URL}/people`;
+
+// Role code constants
+const EDITOR_ROLE = 'ED';
+const MANAGING_EDITOR_ROLE = 'ME';
+const CONSULTING_EDITOR_ROLE = 'CE';
 
 function Masthead() {
     const [mastheadData, setMastheadData] = useState({
@@ -14,44 +20,58 @@ function Masthead() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    // Helper function to check if a role string contains a specific role
+    const hasRole = (rolesValue, roleToCheck) => {
+        if (!rolesValue) return false;
+        
+        // Handle both array and string formats
+        if (Array.isArray(rolesValue)) {
+            return rolesValue.includes(roleToCheck);
+        }
+        
+        // If it's a string, split by comma and check
+        if (typeof rolesValue === 'string') {
+            const rolesArray = rolesValue.split(',').map(r => r.trim());
+            return rolesArray.includes(roleToCheck);
+        }
+        
+        return false;
+    };
+
     const fetchMastheadData = async () => {
         try {
             setLoading(true);
-            const { data } = await axios.get(MASTHEAD_READ_ENDPOINT);
-            console.log('Masthead API Response:', data);
+            const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
+            console.log('People API Response:', data);
             
             // Process the data based on your API response structure
             if (data) {
-                // Option 1: If data is already structured as we need
-                if (data.editors || data.managingEditors || data.consultingEditors) {
-                    setMastheadData({
-                        editors: data.editors || [],
-                        managingEditors: data.managingEditors || [],
-                        consultingEditors: data.consultingEditors || []
-                    });
-                } 
-                // Option 2: If data is just an array of all editors with role properties
-                else if (Array.isArray(data)) {
-                    const processedData = {
-                        editors: data.filter(editor => editor.role === 'editor'),
-                        managingEditors: data.filter(editor => editor.role === 'managing'),
-                        consultingEditors: data.filter(editor => editor.role === 'consulting')
-                    };
-                    setMastheadData(processedData);
-                }
-                // Option 3: If data is an object with editor IDs as keys
-                else if (typeof data === 'object' && !Array.isArray(data)) {
-                    const allEditors = Object.keys(data).map(key => ({
-                        id: key,
+                // If data is an object with emails as keys (standard /people response)
+                if (typeof data === 'object' && !Array.isArray(data)) {
+                    // Convert the object to an array of people
+                    const allPeople = Object.keys(data).map(key => ({
+                        email: key,
                         ...data[key]
                     }));
                     
+                    console.log('All people:', allPeople);
+                    
                     const processedData = {
-                        editors: allEditors.filter(editor => editor.role === 'editor'),
-                        managingEditors: allEditors.filter(editor => editor.role === 'managing'),
-                        consultingEditors: allEditors.filter(editor => editor.role === 'consulting')
+                        editors: allPeople.filter(person => hasRole(person.roles, EDITOR_ROLE)),
+                        managingEditors: allPeople.filter(person => hasRole(person.roles, MANAGING_EDITOR_ROLE)),
+                        consultingEditors: allPeople.filter(person => hasRole(person.roles, CONSULTING_EDITOR_ROLE))
                     };
                     
+                    console.log('Processed masthead data:', processedData);
+                    setMastheadData(processedData);
+                } 
+                // If data is already an array
+                else if (Array.isArray(data)) {
+                    const processedData = {
+                        editors: data.filter(person => hasRole(person.roles, EDITOR_ROLE)),
+                        managingEditors: data.filter(person => hasRole(person.roles, MANAGING_EDITOR_ROLE)),
+                        consultingEditors: data.filter(person => hasRole(person.roles, CONSULTING_EDITOR_ROLE))
+                    };
                     setMastheadData(processedData);
                 } else {
                     setError('Invalid masthead data format received from the API.');
@@ -87,7 +107,7 @@ function Masthead() {
                         mastheadData.editors.map((editor, index) => (
                             <div key={index} className="editor-card">
                                 <h3 className="editor-name">{editor.name}</h3>
-                                <p className="editor-affiliation">{editor.affiliation || editor.organization || editor.institution || ''}</p>
+                                <p className="editor-affiliation">{editor.affiliation || ''}</p>
                             </div>
                         ))
                     ) : (
@@ -104,7 +124,7 @@ function Masthead() {
                         mastheadData.managingEditors.map((editor, index) => (
                             <div key={index} className="editor-card">
                                 <h3 className="editor-name">{editor.name}</h3>
-                                <p className="editor-affiliation">{editor.affiliation || editor.organization || editor.institution || ''}</p>
+                                <p className="editor-affiliation">{editor.affiliation || ''}</p>
                             </div>
                         ))
                     ) : (
@@ -121,7 +141,7 @@ function Masthead() {
                         mastheadData.consultingEditors.map((editor, index) => (
                             <div key={index} className="editor-card">
                                 <h3 className="editor-name">{editor.name}</h3>
-                                <p className="editor-affiliation">{editor.affiliation || editor.organization || editor.institution || ''}</p>
+                                <p className="editor-affiliation">{editor.affiliation || ''}</p>
                             </div>
                         ))
                     ) : (

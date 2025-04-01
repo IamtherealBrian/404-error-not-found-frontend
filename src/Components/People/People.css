@@ -1,4 +1,4 @@
-/* 主要容器样式 */
+
 .wrapper {
     max-width: 800px;
     margin: 0 auto;
@@ -8,7 +8,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 按钮基础样式 */
+
 button {
     padding: 8px 16px;
     border: none;
@@ -18,7 +18,7 @@ button {
     transition: background 0.3s ease-in-out;
 }
 
-/* 主要按钮颜色 */
+
 .button-primary {
     background-color: #007bff;
     color: white;
@@ -28,7 +28,7 @@ button {
     background-color: #0056b3;
 }
 
-/* 删除按钮 */
+
 .button-danger {
     background-color: #dc3545;
     color: white;
@@ -38,7 +38,6 @@ button {
     background-color: #b21f2d;
 }
 
-/* 更新按钮 */
 .button-warning {
     background-color: #ffc107;
     color: black;
@@ -48,7 +47,6 @@ button {
     background-color: #d39e00;
 }
 
-/* 表单样式 */
 .form-container {
     background: white;
     padding: 20px;
@@ -70,7 +68,7 @@ label {
     display: block;
 }
 
-/* 个人信息卡片 */
+
 .person-container {
     background: white;
     margin: 10px 0;
@@ -90,11 +88,32 @@ label {
     color: #666;
 }
 
-/* 错误信息样式 */
+
 .error-message {
     background: #ffebee;
     color: #d32f2f;
     padding: 10px;
     border-radius: 4px;
     margin: 10px 0;
+}
+
+.input-help-text {
+    font-size: 12px;
+    color: #666;
+    margin-top: -15px;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+/* Ensure this style is also applied to other forms */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }

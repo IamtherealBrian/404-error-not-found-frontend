@@ -32,25 +32,26 @@ function AddPersonForm({
       setLoading(true);
       setError('');
 
+      // Convert comma-separated roles to a single string 
+      // (backend will handle conversion to proper format)
+      const rolesStr = roles.split(',').map(role => role.trim()).join(',');
+
       // Format the data exactly as expected by the backend
       const newPerson = {
           name: name.trim(),
           email: email.trim(),
-          role: roles.trim(),
+          roles: rolesStr, // Send as a string instead of an array
           affiliation: affiliation.trim()
       };
 
       try {
           console.log('Sending request to:', PEOPLE_CREATE_ENDPOINT);
           console.log('Request data:', newPerson);
-          const response = await axios.post(PEOPLE_CREATE_ENDPOINT, newPerson, {
+          
+          const response = await axios.post(PEOPLE_CREATE_ENDPOINT, JSON.stringify(newPerson), {
               headers: { 
                   "Content-Type": "application/json",
-                  "Accept": "application/json"
-              },
-              // Remove withCredentials to avoid CORS preflight issues
-              validateStatus: function (status) {
-                  return status < 500; // Accept any status code less than 500
+                  "Accept": "*/*"
               }
           });
           
@@ -95,8 +96,16 @@ function AddPersonForm({
           <label htmlFor="affiliation">Affiliation</label>
           <input required type="text" id="affiliation" value={affiliation} onChange={changeAffiliation}/>
 
-          <label htmlFor="roles">Roles</label>
-          <input required type="text" id="roles" value={roles} onChange={changeRoles}/>
+          <label htmlFor="roles">Roles (comma-separated: ED, ME, CE, AU)</label>
+          <input 
+              required 
+              type="text" 
+              id="roles" 
+              value={roles} 
+              onChange={changeRoles}
+              placeholder="e.g. ED, AU"
+          />
+          <div className="input-help-text">Available roles: ED (Editor), ME (Managing Editor), CE (Consulting Editor), AU (Author)</div>
 
           <button type="button" onClick={cancel} disabled={loading}>
               Cancel
@@ -205,17 +214,25 @@ function People() {
             return;
         }
 
+        // Convert comma-separated roles to a single string
+        const rolesStr = updateRole ? 
+            updateRole.split(',').map(role => role.trim()).join(',') : 
+            '';
+            
         const updatedData = {
             email: updateEmail,
             name: updateName || undefined,
             affiliation: updateAffiliation || undefined,
-            roles: updateRole ? updateRole.split(',').map(role => role.trim()) : []
+            roles: rolesStr // Send as a string instead of an array
         };
 
-        console.log('updateRole:', updateRole);
+        console.log('Updating person:', updatedData);
 
-        axios.put(PEOPLE_READ_ENDPOINT, updatedData, {
-            headers: { "Content-Type": "application/json", "Accept": "application/json" }
+        axios.put(PEOPLE_READ_ENDPOINT, JSON.stringify(updatedData), {
+            headers: { 
+                "Content-Type": "application/json", 
+                "Accept": "*/*" 
+            }
         })
             .then(() => {
                 setUpdatingPerson(false);
@@ -233,10 +250,10 @@ function People() {
             return;
         }
         axios.delete(PEOPLE_DELETE_ENDPOINT, {
-            data: { email },
+            data: JSON.stringify({ email }),
             headers: {
                 "Content-Type": "application/json",
-                "Accept": "application/json"
+                "Accept": "*/*"
             }
         })
             .then(() => {
@@ -296,8 +313,14 @@ function People() {
                     <label>New Affiliation:</label>
                     <input type="text" value={updateAffiliation} onChange={(e) => setUpdateAffiliation(e.target.value)} />
 
-                    <label>New Role:</label>
-                    <input type="text" value={updateRole} onChange={(e) => setUpdateRole(e.target.value)} />
+                    <label>New Roles (comma-separated: ED, ME, CE, AU):</label>
+                    <input 
+                        type="text" 
+                        value={updateRole} 
+                        onChange={(e) => setUpdateRole(e.target.value)} 
+                        placeholder="e.g. ED, AU"
+                    />
+                    <div className="input-help-text">Available roles: ED (Editor), ME (Managing Editor), CE (Consulting Editor), AU (Author)</div>
 
                     <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
                         <button type="button" onClick={() => setUpdatingPerson(false)}>Cancel</button>
