@@ -2,141 +2,147 @@ import React, { useEffect, useState } from 'react';
 import propTypes from 'prop-types';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
- 
+
 import { BACKEND_URL } from '../../constants';
 import './People.css';
 
 const PEOPLE_READ_ENDPOINT = `${BACKEND_URL}/people`;
 const PEOPLE_CREATE_ENDPOINT = `${BACKEND_URL}/people`;
 const PEOPLE_DELETE_ENDPOINT = `${BACKEND_URL}/people`;
+const ROLES_ENDPOINT = `${BACKEND_URL}/roles`;
 
 function AddPersonForm({
-  visible,
-  cancel,
-  fetchPeople,
-  setError,
+    visible,
+    cancel,
+    fetchPeople,
+    setError,
 }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [affiliation, setAffiliation] = useState('');
-  const [roles, setRoles] = useState('');
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [affiliation, setAffiliation] = useState('');
+    const [roles, setRoles] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [roleOptions, setRoleOptions] = useState({});
 
-  const changeName = (event) => { setName(event.target.value); };
-  const changeEmail = (event) => { setEmail(event.target.value); };
-  const changeAffiliation = (event) => { setAffiliation(event.target.value); };
-  const changeRoles = (event) => { setRoles(event.target.value); };
+    const changeName = (event) => { setName(event.target.value); };
+    const changeEmail = (event) => { setEmail(event.target.value); };
+    const changeAffiliation = (event) => { setAffiliation(event.target.value); };
+    const changeRoles = (event) => { setRoles(event.target.value); };
 
-  const [loading, setLoading] = useState(false);
-  const addPerson = async (event) => {
-      event.preventDefault();
-      setLoading(true);
-      setError('');
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await axios.get(ROLES_ENDPOINT);
+                setRoleOptions(response.data.data.roles);
+            } catch (error) {
+                setError('Failed to fetch roles');
+                console.error('Error fetching roles:', error);
+            }
+        };
+        fetchRoles();
+    }, [setError]);
 
-      // Convert comma-separated roles to a single string 
-      // (backend will handle conversion to proper format)
-      const rolesStr = roles.split(',').map(role => role.trim()).join(',');
+    const addPerson = async (event) => {
+        event.preventDefault();
+        setLoading(true);
+        setError('');
 
-      // Format the data exactly as expected by the backend
-      const newPerson = {
-          name: name.trim(),
-          email: email.trim(),
-          roles: rolesStr, // Send as a string instead of an array
-          affiliation: affiliation.trim()
-      };
+        const newPerson = {
+            name: name.trim(),
+            email: email.trim(),
+            roles: roles, // Send as a string instead of an array
+            affiliation: affiliation.trim()
+        };
 
-      try {
-          console.log('Sending request to:', PEOPLE_CREATE_ENDPOINT);
-          console.log('Request data:', newPerson);
-          
-          const response = await axios.post(PEOPLE_CREATE_ENDPOINT, JSON.stringify(newPerson), {
-              headers: { 
-                  "Content-Type": "application/json",
-                  "Accept": "*/*"
-              }
-          });
-          
-          if (response.status === 200 || response.status === 201) {
-              console.log('Success response:', response);
-              fetchPeople();
-              cancel();
-          } else {
-              console.warn('Unexpected status code:', response.status);
-              setError(`Unexpected response from server: ${response.status} ${response.statusText}`);
-          }
-      } catch (error) {
-          console.error("POST request failed:", error);
-          if (error.response) {
-              console.error("Error status:", error.response.status);
-              console.error("Error headers:", error.response.headers);
-              console.error("Error data:", error.response.data);
-              setError(`Server error (${error.response.status}): ${error.response.data?.message || error.response.statusText}`);
-          } else if (error.request) {
-              console.error("No response received:", error.request);
-              setError('No response received from server. Please check if the API is running and accessible.');
-          } else {
-              console.error("Error details:", error);
-              setError(`Error: ${error.message}`);
-          }
-      } finally {
-          setLoading(false);
-      }
-  };
+        try {
+            const response = await axios.post(PEOPLE_CREATE_ENDPOINT, JSON.stringify(newPerson), {
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Accept": "*/*"
+                }
+            });
+            
+            if (response.status === 200 || response.status === 201) {
+                fetchPeople();
+                cancel();
+            } else {
+                setError(`Unexpected response from server: ${response.status} ${response.statusText}`);
+            }
+        } catch (error) {
+            if (error.response) {
+                setError(`Server error (${error.response.status}): ${error.response.data?.message || error.response.statusText}`);
+            } else if (error.request) {
+                setError('No response received from server. Please check if the API is running and accessible.');
+            } else {
+                setError(`Error: ${error.message}`);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  // Ensure the form is not rendered when `visible` is false
-  if (!visible) return null;
+    if (!visible) return null;
 
-  return (
-      <form>
-          <label htmlFor="name">Name</label>
-          <input required type="text" id="name" value={name} onChange={changeName}/>
+    return (
+        <form onSubmit={addPerson}>
+            <label htmlFor="name">Name</label>
+            <input required type="text" id="name" value={name} onChange={changeName}/>
 
-          <label htmlFor="email">Email</label>
-          <input required type="text" id="email" value={email} onChange={changeEmail}/>
+            <label htmlFor="email">Email</label>
+            <input required type="text" id="email" value={email} onChange={changeEmail}/>
 
-          <label htmlFor="affiliation">Affiliation</label>
-          <input required type="text" id="affiliation" value={affiliation} onChange={changeAffiliation}/>
+            <label htmlFor="affiliation">Affiliation</label>
+            <input required type="text" id="affiliation" value={affiliation} onChange={changeAffiliation}/>
 
-          <label htmlFor="roles">Roles (comma-separated: ED, ME, CE, AU)</label>
-          <input 
-              required 
-              type="text" 
-              id="roles" 
-              value={roles} 
-              onChange={changeRoles}
-              placeholder="e.g. ED, AU"
-          />
-          <div className="input-help-text">Available roles: ED (Editor), ME (Managing Editor), CE (Consulting Editor), AU (Author)</div>
+            <div className="form-group">
+                <label>Roles:</label>
+                <select 
+                    className="form-control"
+                    value={roles}
+                    onChange={changeRoles}
+                    required
+                >
+                    <option value="">Select a role</option>
+                    {Object.entries(roleOptions).map(([code, role]) => (
+                        <option key={code} value={code}>
+                            {role}
+                        </option>
+                    ))}
+                </select>
+            </div>
 
-          <button type="button" onClick={cancel} disabled={loading}>
-              Cancel
-          </button>
-          <button type="submit" onClick={addPerson} disabled={loading}>
-              {loading ? "Submitting..." : "Submit"}
-          </button>
-      </form>
-  );
-
+            <div className="button-group">
+                <button type="button" onClick={cancel} disabled={loading}>
+                    Cancel
+                </button>
+                <button type="submit" disabled={loading}>
+                    {loading ? "Submitting..." : "Submit"}
+                </button>
+            </div>
+        </form>
+    );
 }
 
 AddPersonForm.propTypes = {
     visible: propTypes.bool.isRequired,
     cancel: propTypes.func.isRequired,
     fetchPeople: propTypes.func.isRequired,
-  setError: propTypes.func.isRequired,
+    setError: propTypes.func.isRequired,
 };
 
 function ErrorMessage({ message }) {
-  return (
-    <div className="error-message">
-      {message}
-    </div>
-  );
+    return (
+        <div className="error-message">
+            {message}
+        </div>
+    );
 }
+
 ErrorMessage.propTypes = {
-  message: propTypes.string.isRequired,
+    message: propTypes.string.isRequired,
 };
 
-function Person({ person, onUpdate, onDelete }) {
+function Person({ person, onUpdate, onDelete, isUpdating, updateForm }) {
     const { name, email, affiliation, roles } = person;
     return (
         <div className="person-container">
@@ -146,8 +152,11 @@ function Person({ person, onUpdate, onDelete }) {
                 <p>Affiliation: {affiliation}</p>
                 <p>Roles: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
             </Link>
-            <button onClick={() => onUpdate(person)}>Update</button>
-            <button onClick={() => onDelete(email)}>Delete</button>
+            <div className="person-actions">
+                <button onClick={() => onUpdate(person)}>Update</button>
+                <button onClick={() => onDelete(email)}>Delete</button>
+            </div>
+            {isUpdating && updateForm}
         </div>
     );
 }
@@ -161,51 +170,72 @@ Person.propTypes = {
     }).isRequired,
     onUpdate: propTypes.func.isRequired,
     onDelete: propTypes.func.isRequired,
+    isUpdating: propTypes.bool.isRequired,
+    updateForm: propTypes.node,
 };
 
-
 function peopleObjectToArray(Data) {
-  const keys = Object.keys(Data);
-  const people = keys.map((key) => Data[key]);
-  return people;
+    const keys = Object.keys(Data);
+    const people = keys.map((key) => Data[key]);
+    return people;
 }
 
 function People() {
-  const [error, setError] = useState('');
-  const [people, setPeople] = useState([]);
-  const [addingPerson, setAddingPerson] = useState(false);
-  const [updatingPerson, setUpdatingPerson] = useState(false);
-  const [updateEmail, setUpdateEmail] = useState('');
-  const [updateName, setUpdateName] = useState('');
-  const [updateAffiliation, setUpdateAffiliation] = useState('');
-  const [updateRole, setUpdateRole] = useState('');
+    const [error, setError] = useState('');
+    const [people, setPeople] = useState([]);
+    const [addingPerson, setAddingPerson] = useState(false);
+    const [updatingPersonId, setUpdatingPersonId] = useState(null);
+    const [updateEmail, setUpdateEmail] = useState('');
+    const [updateName, setUpdateName] = useState('');
+    const [updateAffiliation, setUpdateAffiliation] = useState('');
+    const [updateRole, setUpdateRole] = useState('');
+    const [roleOptions, setRoleOptions] = useState({});
 
     const handleUpdate = (person) => {
-        setUpdatingPerson(true);
+        setUpdatingPersonId(person.email);
         setUpdateEmail(person.email);
         setUpdateName(person.name);
         setUpdateAffiliation(person.affiliation || '');
-        setUpdateRole(Array.isArray(person.roles) ? person.roles.join(', ') : person.roles || '');
+        setUpdateRole(Array.isArray(person.roles) ? person.roles[0] : person.roles || '');
     };
 
-  const handleDelete = (email) => {
-      deletePerson(email);
-  };
+    const cancelUpdate = () => {
+        setUpdatingPersonId(null);
+        setUpdateEmail('');
+        setUpdateName('');
+        setUpdateAffiliation('');
+        setUpdateRole('');
+    };
 
+    const handleDelete = (email) => {
+        deletePerson(email);
+    };
 
-  const fetchPeople = async () => {
-    try {
-        const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
-        setPeople(peopleObjectToArray(data)); // Convert and set people data
-    } catch (error) {
-        if (!error.response) {
-            setError("Network error. Please check your internet connection.");
-        } else {
-            setError(`There was a problem retrieving the list of people. ${error.response.data?.message || error.message}`);
+    const fetchPeople = async () => {
+        try {
+            const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
+            setPeople(peopleObjectToArray(data));
+        } catch (error) {
+            if (!error.response) {
+                setError("Network error. Please check your internet connection.");
+            } else {
+                setError(`There was a problem retrieving the list of people. ${error.response.data?.message || error.message}`);
+            }
         }
-    }
-  };
+    };
 
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await axios.get(ROLES_ENDPOINT);
+                setRoleOptions(response.data.data.roles);
+            } catch (error) {
+                setError('Failed to fetch roles');
+                console.error('Error fetching roles:', error);
+            }
+        };
+        fetchRoles();
+    }, []);
 
     const updatePerson = (event) => {
         event.preventDefault();
@@ -214,19 +244,12 @@ function People() {
             return;
         }
 
-        // Convert comma-separated roles to a single string
-        const rolesStr = updateRole ? 
-            updateRole.split(',').map(role => role.trim()).join(',') : 
-            '';
-            
         const updatedData = {
             email: updateEmail,
             name: updateName || undefined,
             affiliation: updateAffiliation || undefined,
-            roles: rolesStr // Send as a string instead of an array
+            roles: updateRole // Send as a string instead of an array
         };
-
-        console.log('Updating person:', updatedData);
 
         axios.put(PEOPLE_READ_ENDPOINT, JSON.stringify(updatedData), {
             headers: { 
@@ -235,11 +258,10 @@ function People() {
             }
         })
             .then(() => {
-                setUpdatingPerson(false);
+                setUpdatingPersonId(null);
                 fetchPeople();
             })
             .catch((error) => {
-                console.error("PUT request failed:", error.response?.data || error);
                 setError(`There was a problem updating the person. ${error.response?.data?.message || error.message}`);
             });
     };
@@ -260,18 +282,47 @@ function People() {
                 fetchPeople();
             })
             .catch((error) => {
-                console.error("DELETE request failed:", error.response?.data || error);
                 setError(`There was a problem deleting the person. ${error.response?.data?.message || error.message}`);
             });
     };
 
-  const showAddPersonForm = () => { setAddingPerson(true); };
-  const hideAddPersonForm = () => { setAddingPerson(false); };
+    const showAddPersonForm = () => { setAddingPerson(true); };
+    const hideAddPersonForm = () => { setAddingPerson(false); };
 
-  useEffect(() => {
-      fetchPeople();
-  }, []);
+    const updateForm = (
+        <form onSubmit={updatePerson} className="update-form">
+            <label>New Name:</label>
+            <input type="text" value={updateName} onChange={(e) => setUpdateName(e.target.value)} />
 
+            <label>New Affiliation:</label>
+            <input type="text" value={updateAffiliation} onChange={(e) => setUpdateAffiliation(e.target.value)} />
+
+            <div className="form-group">
+                <label>New Role:</label>
+                <select 
+                    className="form-control"
+                    value={updateRole}
+                    onChange={(e) => setUpdateRole(e.target.value)}
+                >
+                    <option value="">Select a role</option>
+                    {Object.entries(roleOptions).map(([code, role]) => (
+                        <option key={code} value={code}>
+                            {role}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <button type="button" onClick={cancelUpdate}>Cancel</button>
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+    );
+
+    useEffect(() => {
+        fetchPeople();
+    }, []);
 
     return (
         <div className="wrapper">
@@ -294,40 +345,15 @@ function People() {
             {error && <ErrorMessage message={error}/>}
 
             {people.map((person) => (
-                   <Person
-                     key={person.name}
-                     person={person}
-                     onUpdate={handleUpdate}
-                     onDelete={handleDelete}
-                   />
-                 ))}
-
-            {updatingPerson && (
-                <form onSubmit={updatePerson} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    <label>Email (ID):</label>
-                    <input type="email" value={updateEmail} onChange={(e) => setUpdateEmail(e.target.value)} />
-
-                    <label>New Name:</label>
-                    <input type="text" value={updateName} onChange={(e) => setUpdateName(e.target.value)} />
-
-                    <label>New Affiliation:</label>
-                    <input type="text" value={updateAffiliation} onChange={(e) => setUpdateAffiliation(e.target.value)} />
-
-                    <label>New Roles (comma-separated: ED, ME, CE, AU):</label>
-                    <input 
-                        type="text" 
-                        value={updateRole} 
-                        onChange={(e) => setUpdateRole(e.target.value)} 
-                        placeholder="e.g. ED, AU"
-                    />
-                    <div className="input-help-text">Available roles: ED (Editor), ME (Managing Editor), CE (Consulting Editor), AU (Author)</div>
-
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-                        <button type="button" onClick={() => setUpdatingPerson(false)}>Cancel</button>
-                        <button type="submit">Submit</button>
-                    </div>
-                </form>
-            )}
+                <Person
+                    key={person.name}
+                    person={person}
+                    onUpdate={handleUpdate}
+                    onDelete={handleDelete}
+                    isUpdating={updatingPersonId === person.email}
+                    updateForm={updateForm}
+                />
+            ))}
         </div>
     );
 }
