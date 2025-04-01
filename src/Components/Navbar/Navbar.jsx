@@ -7,6 +7,7 @@ const PAGES = [
     { label: 'View All People', destination: '/people' },
     { label: 'View All Texts', destination: '/texts' },
     { label: 'View All Submissions', destination: '/submissions' },
+    { label: 'View Masthead', destination: '/masthead' },
 ];
 
 function NavLink({ page }) {

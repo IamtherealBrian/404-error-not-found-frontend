@@ -8,6 +8,7 @@ import Texts from './Components/Texts';
 import People from './Components/People/People';
 import LoginPage from './Components/Login/LoginPage';
 import Submissions from './Components/Submissions/Submissions';
+import Masthead from './Components/Masthead';
 import './App.css';
 
 function PersonPage() {
@@ -45,6 +46,7 @@ function App() {
                 <Route path="/texts" element={<ProtectedRoute element={<Texts />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/people" element={<ProtectedRoute element={<People />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/submissions" element={<ProtectedRoute element={<Submissions />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/masthead" element={<ProtectedRoute element={<Masthead />} isAuthenticated={isAuthenticated} />} />
             </Routes>
         </BrowserRouter>
     );
