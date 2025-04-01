@@ -149,10 +149,6 @@ function Masthead() {
                     )}
                 </div>
             </section>
-            
-            <footer className="masthead-footer">
-                <p>* Executive committee</p>
-            </footer>
         </div>
     );
 }
