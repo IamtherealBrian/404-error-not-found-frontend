@@ -3,7 +3,7 @@ import axios from 'axios';
 import { BACKEND_URL } from '../../constants';
 import './Masthead.css';
 
-const MASTHEAD_READ_ENDPOINT = `${BACKEND_URL}/masthead`;
+const MASTHEAD_READ_ENDPOINT = `${BACKEND_URL}/people/masthead`;
 
 function Masthead() {
     const [mastheadData, setMastheadData] = useState({
