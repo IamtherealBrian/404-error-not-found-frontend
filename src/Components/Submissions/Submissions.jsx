@@ -18,12 +18,15 @@ function Submissions() {
     const fetchManuscripts = async () => {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
+            console.log("Raw data:", data);
             const array = Object.keys(data).map((key) => data[key]);
+            console.log("Manuscripts array:", array);
             setManuscripts(array);
         } catch (err) {
             setError(`Error fetching manuscripts: ${err.message}`);
         }
     };
+
 
     const fetchPossibleStates = async () => {
         try {
@@ -189,7 +192,7 @@ function Submissions() {
                                     Current State:
                                     <select
                                         name="curr_state"
-                                        value={editedData.curr_state || ''}
+                                        value={editedData.state || ''}
                                         onChange={handleInputChange}
                                     >
                                         <option value="">-- Select State --</option>
@@ -212,7 +215,7 @@ function Submissions() {
                                 <p><strong>Abstract:</strong> {m.abstract}</p>
                                 <p><strong>Text:</strong> {m.text}</p>
                                 <p><strong>Editor Email:</strong> {m.editor_email}</p>
-                                <p><strong>Current State:</strong> {m.curr_state}</p>
+                                <p><strong>Current State:</strong> {m.state}</p>
                                 <button onClick={() => startEditing(m)}>Edit</button>
                                 <button onClick={() => deleteManuscript(m.title)}>Delete</button>
                             </div>
