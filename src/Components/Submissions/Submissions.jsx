@@ -23,7 +23,8 @@ function Submissions() {
         author_email: '',
         abstract: '',
         text: '',
-        editor_email: ''
+        editor_email: '',
+        state: 'Submitted'
     });
 
     // For editing an existing manuscript
@@ -91,7 +92,8 @@ function Submissions() {
                     author_email: '',
                     abstract: '',
                     text: '',
-                    editor_email: ''
+                    editor_email: '',
+                    state: 'Submitted'
                 });
                 setShowCreateForm(false); // Hide form after successful creation
             } else {
