@@ -13,6 +13,9 @@ function Submissions() {
     const [error, setError] = useState('');
     const [possibleStates, setPossibleStates] = useState([]);
 
+    // Control visibility of create form
+    const [showCreateForm, setShowCreateForm] = useState(false);
+
     // For creating a new manuscript
     const [newManuscript, setNewManuscript] = useState({
         title: '',
@@ -31,7 +34,6 @@ function Submissions() {
     const fetchManuscripts = async () => {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
-            // Backend returns an object keyed by title; convert to array
             const array = Object.keys(data).map((key) => data[key]);
             setManuscripts(array);
         } catch (err) {
@@ -82,7 +84,6 @@ function Submissions() {
         try {
             const response = await axios.post(MANUSCRIPT_CREATE_ENDPOINT, newManuscript);
             if (response.status === 200) {
-                // Refresh list and clear the form
                 fetchManuscripts();
                 setNewManuscript({
                     title: '',
@@ -92,6 +93,7 @@ function Submissions() {
                     text: '',
                     editor_email: ''
                 });
+                setShowCreateForm(false); // Hide form after successful creation
             } else {
                 setError(`Create returned unexpected status: ${response.status}`);
             }
@@ -158,75 +160,79 @@ function Submissions() {
             <h1>Manuscripts</h1>
             {error && <div style={{ color: 'red' }}>{error}</div>}
 
-            {/* ================= Create New Manuscript Form ================= */}
-            <h2>Create New Manuscript</h2>
-            <div style={{ border: '1px solid #ccc', padding: '10px', margin: '10px 0' }}>
-                <label>
-                    Title:
-                    <input
-                        type="text"
-                        name="title"
-                        value={newManuscript.title}
-                        onChange={handleNewManuscriptChange}
-                    />
-                </label>
-                <br />
+            {/* Button to toggle create form */}
+            {!showCreateForm && (
+                <button onClick={() => setShowCreateForm(true)}>
+                    Create a new submission
+                </button>
+            )}
 
-                <label>
-                    Author:
-                    <input
-                        type="text"
-                        name="author"
-                        value={newManuscript.author}
-                        onChange={handleNewManuscriptChange}
-                    />
-                </label>
-                <br />
-
-                <label>
-                    Author Email:
-                    <input
-                        type="email"
-                        name="author_email"
-                        value={newManuscript.author_email}
-                        onChange={handleNewManuscriptChange}
-                    />
-                </label>
-                <br />
-
-                <label>
-                    Abstract:
-                    <textarea
-                        name="abstract"
-                        value={newManuscript.abstract}
-                        onChange={handleNewManuscriptChange}
-                    />
-                </label>
-                <br />
-
-                <label>
-                    Text:
-                    <textarea
-                        name="text"
-                        value={newManuscript.text}
-                        onChange={handleNewManuscriptChange}
-                    />
-                </label>
-                <br />
-
-                <label>
-                    Editor Email:
-                    <input
-                        type="email"
-                        name="editor_email"
-                        value={newManuscript.editor_email}
-                        onChange={handleNewManuscriptChange}
-                    />
-                </label>
-                <br />
-
-                <button onClick={createManuscript}>Create</button>
-            </div>
+            {/* Create New Manuscript Form (hidden by default) */}
+            {showCreateForm && (
+                <div style={{ border: '1px solid #ccc', padding: '10px', margin: '10px 0' }}>
+                    <h2>Create New Manuscript</h2>
+                    <label>
+                        Title:
+                        <input
+                            type="text"
+                            name="title"
+                            value={newManuscript.title}
+                            onChange={handleNewManuscriptChange}
+                        />
+                    </label>
+                    <br />
+                    <label>
+                        Author:
+                        <input
+                            type="text"
+                            name="author"
+                            value={newManuscript.author}
+                            onChange={handleNewManuscriptChange}
+                        />
+                    </label>
+                    <br />
+                    <label>
+                        Author Email:
+                        <input
+                            type="email"
+                            name="author_email"
+                            value={newManuscript.author_email}
+                            onChange={handleNewManuscriptChange}
+                        />
+                    </label>
+                    <br />
+                    <label>
+                        Abstract:
+                        <textarea
+                            name="abstract"
+                            value={newManuscript.abstract}
+                            onChange={handleNewManuscriptChange}
+                        />
+                    </label>
+                    <br />
+                    <label>
+                        Text:
+                        <textarea
+                            name="text"
+                            value={newManuscript.text}
+                            onChange={handleNewManuscriptChange}
+                        />
+                    </label>
+                    <br />
+                    <label>
+                        Editor Email:
+                        <input
+                            type="email"
+                            name="editor_email"
+                            value={newManuscript.editor_email}
+                            onChange={handleNewManuscriptChange}
+                        />
+                    </label>
+                    <br />
+                    <button onClick={createManuscript}>Create</button>
+                    <button onClick={() => setShowCreateForm(false)}>Cancel</button>
+                </div>
+            )}
 
             <h2>Existing Manuscripts</h2>
             {manuscripts.map((m) => (
@@ -246,7 +252,6 @@ function Submissions() {
                                 />
                             </label>
                             <br />
-
                             <label>
                                 Author:
                                 <input
@@ -257,7 +262,6 @@ function Submissions() {
                                 />
                             </label>
                             <br />
-
                             <label>
                                 Author Email:
                                 <input
@@ -268,7 +272,6 @@ function Submissions() {
                                 />
                             </label>
                             <br />
-
                             <label>
                                 Abstract:
                                 <textarea
@@ -278,7 +281,6 @@ function Submissions() {
                                 />
                             </label>
                             <br />
-
                             <label>
                                 Text:
                                 <textarea
@@ -288,7 +290,6 @@ function Submissions() {
                                 />
                             </label>
                             <br />
-
                             <label>
                                 Editor Email:
                                 <input
@@ -299,10 +300,6 @@ function Submissions() {
                                 />
                             </label>
                             <br />
-
-                            {/*
-                              Changed name from "curr_state" to "state" to match backend
-                            */}
                             <label>
                                 Current State:
                                 <select
@@ -319,7 +316,6 @@ function Submissions() {
                                 </select>
                             </label>
                             <br />
-
                             <button onClick={updateManuscript}>Save</button>
                             <button onClick={cancelEditing}>Cancel</button>
                         </div>
