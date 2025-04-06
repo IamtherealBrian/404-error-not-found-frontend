@@ -7,17 +7,40 @@ const MANUSCRIPT_READ_ENDPOINT = `${BACKEND_URL}/manuscript/read`;
 const MANUSCRIPT_CREATE_ENDPOINT = `${BACKEND_URL}/manuscript/create`;
 const MANUSCRIPT_UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
 const MANUSCRIPT_DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
-const MANUSCRIPT_STATES_ENDPOINT = `${BACKEND_URL}/manuscript/states`;
+
+const STATE_TRANSITIONS = {
+    'SUB': ['Rejected', 'Referee Review', 'Withdrawn'],
+    'Submitted': ['Rejected', 'Referee Review', 'Withdrawn'],
+    'REF': ['Rejected', 'Submitted', 'Copy Edit', 'Author Revisions', 'Referee Review', 'Withdrawn'],
+    'Referee Review': ['Rejected', 'Submitted', 'Copy Edit', 'Author Revisions', 'Referee Review', 'Withdrawn'],
+    'AUTH': ['Editor Review', 'Withdrawn'],
+    'Author Revisions': ['Editor Review', 'Withdrawn'],
+    'ED': ['Copy Edit', 'Withdrawn'],
+    'Editor Review': ['Copy Edit', 'Withdrawn'],
+    'CE': ['Author Review', 'Withdrawn'],
+    'Copy Edit': ['Author Review', 'Withdrawn'],
+    'AR': ['Formatting', 'Withdrawn'],
+    'Author Review': ['Formatting', 'Withdrawn'],
+    'FOR': ['Published', 'Withdrawn'],
+    'Formatting': ['Published', 'Withdrawn'],
+    'PUB': ['Withdrawn'],
+    'Published': ['Withdrawn'],
+    'Rejected': [],
+    'Withdrawn': []
+};
+
+const getNextPossibleStates = (currentState) => {
+    return STATE_TRANSITIONS[currentState] || [];
+};
 
 function Submissions() {
     const navigate = useNavigate();
     const [manuscripts, setManuscripts] = useState([]);
     const [error, setError] = useState('');
-    const [possibleStates, setPossibleStates] = useState([]);
-
-    // Control visibility of create form
     const [showCreateForm, setShowCreateForm] = useState(false);
-
+    const [editingManuscript, setEditingManuscript] = useState(null);
+    const [editedData, setEditedData] = useState({});
+    
     // For creating a new manuscript
     const [newManuscript, setNewManuscript] = useState({
         title: '',
@@ -26,12 +49,8 @@ function Submissions() {
         abstract: '',
         text: '',
         editor_email: '',
-        state: 'Submitted'
+        state: 'SUB'
     });
-
-    // For editing an existing manuscript
-    const [editingManuscript, setEditingManuscript] = useState(null);
-    const [editedData, setEditedData] = useState({});
 
     // Fetch all manuscripts
     const fetchManuscripts = async () => {
@@ -44,21 +63,8 @@ function Submissions() {
         }
     };
 
-    // Fetch possible states
-    const fetchPossibleStates = async () => {
-        try {
-            const { data } = await axios.get(MANUSCRIPT_STATES_ENDPOINT);
-            if (data && data.states) {
-                setPossibleStates(data.states);
-            }
-        } catch (err) {
-            setError(`Error fetching states: ${err.message}`);
-        }
-    };
-
     useEffect(() => {
         fetchManuscripts();
-        fetchPossibleStates();
     }, []);
 
     // Handle changes in the "create new manuscript" form
@@ -73,12 +79,10 @@ function Submissions() {
     // Create a new manuscript
     const createManuscript = async () => {
         setError('');
-        // Validate that the title is not blank
         if (!newManuscript.title.trim()) {
             setError("Title cannot be blank.");
             return;
         }
-        // Validate that the title is unique among existing manuscripts
         if (manuscripts.some(m => m.title === newManuscript.title)) {
             setError("A manuscript with this title already exists. Please choose a different title.");
             return;
@@ -95,9 +99,9 @@ function Submissions() {
                     abstract: '',
                     text: '',
                     editor_email: '',
-                    state: 'Submitted'
+                    state: 'SUB'
                 });
-                setShowCreateForm(false); // Hide form after successful creation
+                setShowCreateForm(false);
             } else {
                 setError(`Create returned unexpected status: ${response.status}`);
             }
@@ -164,14 +168,12 @@ function Submissions() {
             <h1>Manuscripts</h1>
             {error && <div style={{ color: 'red' }}>{error}</div>}
 
-            {/* Button to toggle create form */}
             {!showCreateForm && (
                 <button onClick={() => setShowCreateForm(true)}>
                     Create a new submission
                 </button>
             )}
 
-            {/* Create New Manuscript Form (hidden by default) */}
             {showCreateForm && (
                 <div style={{ border: '1px solid #ccc', padding: '10px', margin: '10px 0' }}>
                     <h2>Create New Manuscript</h2>
@@ -311,10 +313,10 @@ function Submissions() {
                                     value={editedData.state || ''}
                                     onChange={handleEditInputChange}
                                 >
-                                    <option value="">-- Select State --</option>
-                                    {possibleStates.map((stateOption) => (
-                                        <option key={stateOption} value={stateOption}>
-                                            {stateOption}
+                                    <option value={editedData.state}>{editedData.state}</option>
+                                    {getNextPossibleStates(editedData.state).map((nextState) => (
+                                        <option key={nextState} value={nextState}>
+                                            {nextState}
                                         </option>
                                     ))}
                                 </select>
