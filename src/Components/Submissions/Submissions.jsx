@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../../constants';
 
 const MANUSCRIPT_READ_ENDPOINT = `${BACKEND_URL}/manuscript/read`;
@@ -9,6 +10,7 @@ const MANUSCRIPT_DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
 const MANUSCRIPT_STATES_ENDPOINT = `${BACKEND_URL}/manuscript/states`;
 
 function Submissions() {
+    const navigate = useNavigate();
     const [manuscripts, setManuscripts] = useState([]);
     const [error, setError] = useState('');
     const [possibleStates, setPossibleStates] = useState([]);
@@ -323,15 +325,29 @@ function Submissions() {
                         </div>
                     ) : (
                         <div>
-                            <h3>{m.title}</h3>
-                            <p><strong>Author:</strong> {m.author}</p>
-                            <p><strong>Author Email:</strong> {m.author_email}</p>
-                            <p><strong>Abstract:</strong> {m.abstract}</p>
-                            <p><strong>Text:</strong> {m.text}</p>
-                            <p><strong>Editor Email:</strong> {m.editor_email}</p>
-                            <p><strong>Current State:</strong> {m.state}</p>
-                            <button onClick={() => startEditing(m)}>Edit</button>
-                            <button onClick={() => deleteManuscript(m.title)}>Delete</button>
+                            <div 
+                                style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/submissions/${encodeURIComponent(m.title)}`)}>
+                                    <h3>{m.title}</h3>
+                                    <p><strong>Author:</strong> {m.author}</p>
+                                    <p><strong>Current State:</strong> {m.state || '(not set)'}</p>
+                                </div>
+                                <div>
+                                    <button onClick={(e) => {
+                                        e.stopPropagation();
+                                        startEditing(m);
+                                    }}>Edit</button>
+                                    <button onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteManuscript(m.title);
+                                    }}>Delete</button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
