@@ -149,6 +149,11 @@ function Submissions() {
 
     // Delete a manuscript
     const deleteManuscript = async (title) => {
+        // Prompt the user for confirmation
+        if (!window.confirm(`Are you sure you want to delete "${title}"?`)) {
+            return;
+        }
+
         try {
             const response = await axios.delete(MANUSCRIPT_DELETE_ENDPOINT, {
                 data: { title },
