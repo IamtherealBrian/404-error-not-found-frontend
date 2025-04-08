@@ -127,6 +127,11 @@ function Submissions() {
 
     // Cancel editing
     const cancelEditing = () => {
+        // Confirm with the user before discarding changes
+        if (!window.confirm("Are you sure you want to discard your changes?")) {
+            return;
+        }
+
         setEditingManuscript(null);
         setEditedData({});
     };
