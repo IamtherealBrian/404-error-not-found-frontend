@@ -61,9 +61,5 @@ describe('People component', () => {
         
         // Check that the default option exists
         expect(screen.getByText('Select a role')).toBeInTheDocument();
-        
-        // We can verify the select exists, but we won't check for specific options
-        // since the component is making an API call to populate them
-        // and we'd need more complex mocking to test that behavior
     });
 });
