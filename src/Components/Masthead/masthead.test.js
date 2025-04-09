@@ -58,4 +58,38 @@ describe('Masthead Component', () => {
     expect(screen.getByText('Management School')).toBeInTheDocument();
     expect(screen.getByText('Consulting Institute')).toBeInTheDocument();
   });
+
+  test('shows error message when API request fails', async () => {
+    // Mock a failed API response
+    axios.get.mockRejectedValueOnce(new Error('Network error'));
+    
+    render(<Masthead />);
+    
+    // Initially should show loading
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    
+    // Wait for error to display
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/There was a problem retrieving the masthead data/i)).toBeInTheDocument();
+      expect(screen.getByText(/Network error/i)).toBeInTheDocument();
+    });
+  });
+
+  test('shows empty state when no editors are found', async () => {
+    // Mock empty data response
+    axios.get.mockResolvedValueOnce({ data: {} });
+    
+    render(<Masthead />);
+    
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+    
+    // Check that empty state messages are displayed
+    expect(screen.getByText('No editors available')).toBeInTheDocument();
+    expect(screen.getByText('No managing editors available')).toBeInTheDocument();
+    expect(screen.getByText('No consulting editors available')).toBeInTheDocument();
+  });
 }); 
