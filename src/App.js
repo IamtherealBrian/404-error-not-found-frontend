@@ -9,11 +9,13 @@ import LoginPage from './Components/Login/LoginPage';
 import Submissions from './Components/Submissions/Submissions';
 import SubmissionDetail from './Components/Submissions/SubmissionDetail';
 import Masthead from './Components/Masthead';
+import PeopleDetail from './Components/People/PeopleDetail';
+
 import './App.css';
 
-function PersonPage() {
-    return <h1>Person Page</h1>;
-}
+// function PersonPage() {
+//     return <h1>Person Page</h1>;
+// }
 
 function ProtectedRoute({ element, isAuthenticated }) {
     return isAuthenticated ? element : <Navigate to="/login" />;
@@ -42,7 +44,7 @@ function App() {
                 <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
                 <Route path="/" element={<ProtectedRoute element={<Home isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/write" element={<ProtectedRoute element={<Write />} isAuthenticated={isAuthenticated} />} />
-                <Route path="/people/:name" element={<ProtectedRoute element={<PersonPage />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/people/:name" element={<ProtectedRoute element={<PeopleDetail />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/people" element={<ProtectedRoute element={<People />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/submissions" element={<ProtectedRoute element={<Submissions />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/submissions/:title" element={<ProtectedRoute element={<SubmissionDetail />} isAuthenticated={isAuthenticated} />} />
