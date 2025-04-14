@@ -7,7 +7,6 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-
 button {
     padding: 8px 16px;
     border: none;
@@ -17,7 +16,6 @@ button {
     transition: background 0.3s ease-in-out;
 }
 
-
 .button-primary {
     background-color: #007bff;
     color: white;
@@ -26,7 +24,6 @@ button {
 .button-primary:hover {
     background-color: #0056b3;
 }
-
 
 .button-danger {
     background-color: #dc3545;
@@ -63,10 +60,9 @@ input {
 
 label {
     font-weight: bold;
-    margin-top: 10px;
     display: block;
+    margin-bottom: 5px;
 }
-
 
 .person-container {
     background: white;
@@ -116,8 +112,31 @@ label {
     font-style: italic;
 }
 
-/* Ensure this style is also applied to other forms */
-form {
+
+
+select.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* If the global form rule is causing issues, override label styling in forms as well: */
+form label {
+    display: block !important;
+    margin-top: 0 !important;
+    margin-bottom: 5px !important;
+}
+
+
+/* Replace the global form rule with a scoped class */
+.form-container {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -126,13 +145,17 @@ form {
     padding: 20px;
     background-color: #f9f9f9;
     border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-select.form-control {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 10px;
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px; /* if you want spacing between groups */
 }
+
+.form-group label {
+    display: block;
+    margin-bottom: 100px; /* space under the label */
+}
+

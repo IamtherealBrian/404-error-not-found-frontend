@@ -11,12 +11,7 @@ const PEOPLE_CREATE_ENDPOINT = `${BACKEND_URL}/people`;
 const PEOPLE_DELETE_ENDPOINT = `${BACKEND_URL}/people`;
 const ROLES_ENDPOINT = `${BACKEND_URL}/roles`;
 
-function AddPersonForm({
-    visible,
-    cancel,
-    fetchPeople,
-    setError,
-}) {
+function AddPersonForm({ visible, cancel, fetchPeople, setError }) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [affiliation, setAffiliation] = useState('');
@@ -24,10 +19,10 @@ function AddPersonForm({
     const [loading, setLoading] = useState(false);
     const [roleOptions, setRoleOptions] = useState({});
 
-    const changeName = (event) => { setName(event.target.value); };
-    const changeEmail = (event) => { setEmail(event.target.value); };
-    const changeAffiliation = (event) => { setAffiliation(event.target.value); };
-    const changeRoles = (event) => { setRoles(event.target.value); };
+    const changeName = (event) => setName(event.target.value);
+    const changeEmail = (event) => setEmail(event.target.value);
+    const changeAffiliation = (event) => setAffiliation(event.target.value);
+    const changeRoles = (event) => setRoles(event.target.value);
 
     useEffect(() => {
         const fetchRoles = async () => {
@@ -50,18 +45,22 @@ function AddPersonForm({
         const newPerson = {
             name: name.trim(),
             email: email.trim(),
-            roles: roles, // Send as a string instead of an array
-            affiliation: affiliation.trim()
+            roles: roles, // Sent as a string instead of an array
+            affiliation: affiliation.trim(),
         };
 
         try {
-            const response = await axios.post(PEOPLE_CREATE_ENDPOINT, JSON.stringify(newPerson), {
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Accept": "*/*"
+            const response = await axios.post(
+                PEOPLE_CREATE_ENDPOINT,
+                JSON.stringify(newPerson),
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "*/*",
+                    },
                 }
-            });
-            
+            );
+
             if (response.status === 200 || response.status === 201) {
                 fetchPeople();
                 cancel();
@@ -85,18 +84,31 @@ function AddPersonForm({
 
     return (
         <form onSubmit={addPerson}>
-            <label htmlFor="name">Name</label>
-            <input required type="text" id="name" value={name} onChange={changeName}/>
-
-            <label htmlFor="email">Email</label>
-            <input required type="text" id="email" value={email} onChange={changeEmail}/>
-
-            <label htmlFor="affiliation">Affiliation</label>
-            <input required type="text" id="affiliation" value={affiliation} onChange={changeAffiliation}/>
+            <div className="form-group">
+                <label htmlFor="name">Name</label>
+                <input required type="text" id="name" value={name} onChange={changeName} />
+            </div>
 
             <div className="form-group">
-                <label>Roles:</label>
-                <select 
+                <label htmlFor="email">Email</label>
+                <input required type="text" id="email" value={email} onChange={changeEmail} />
+            </div>
+
+            <div className="form-group">
+                <label htmlFor="affiliation">Affiliation</label>
+                <input
+                    required
+                    type="text"
+                    id="affiliation"
+                    value={affiliation}
+                    onChange={changeAffiliation}
+                />
+            </div>
+
+            <div className="form-group">
+                <label htmlFor="roles">Roles:</label>
+                <select
+                    id="roles"
                     className="form-control"
                     value={roles}
                     onChange={changeRoles}
@@ -116,7 +128,7 @@ function AddPersonForm({
                     Cancel
                 </button>
                 <button type="submit" disabled={loading}>
-                    {loading ? "Submitting..." : "Submit"}
+                    {loading ? 'Submitting...' : 'Submit'}
                 </button>
             </div>
         </form>
@@ -131,11 +143,7 @@ AddPersonForm.propTypes = {
 };
 
 function ErrorMessage({ message }) {
-    return (
-        <div className="error-message">
-            {message}
-        </div>
-    );
+    return <div className="error-message">{message}</div>;
 }
 
 ErrorMessage.propTypes = {
@@ -174,10 +182,9 @@ Person.propTypes = {
     updateForm: propTypes.node,
 };
 
-function peopleObjectToArray(Data) {
-    const keys = Object.keys(Data);
-    const people = keys.map((key) => Data[key]);
-    return people;
+function peopleObjectToArray(data) {
+    const keys = Object.keys(data);
+    return keys.map((key) => data[key]);
 }
 
 function People() {
@@ -248,14 +255,14 @@ function People() {
             email: updateEmail,
             name: updateName || undefined,
             affiliation: updateAffiliation || undefined,
-            roles: updateRole // Send as a string instead of an array
+            roles: updateRole,
         };
 
         axios.put(PEOPLE_READ_ENDPOINT, JSON.stringify(updatedData), {
-            headers: { 
-                "Content-Type": "application/json", 
-                "Accept": "*/*" 
-            }
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*"
+            },
         })
             .then(() => {
                 setUpdatingPersonId(null);
@@ -276,7 +283,7 @@ function People() {
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "*/*"
-            }
+            },
         })
             .then(() => {
                 fetchPeople();
@@ -286,11 +293,11 @@ function People() {
             });
     };
 
-    const showAddPersonForm = () => { setAddingPerson(true); };
-    const hideAddPersonForm = () => { setAddingPerson(false); };
+    const showAddPersonForm = () => setAddingPerson(true);
+    const hideAddPersonForm = () => setAddingPerson(false);
 
     const updateForm = (
-        <form onSubmit={updatePerson} className="update-form">
+        <form onSubmit={updatePerson} className="form-container">
             <label>New Name:</label>
             <input type="text" value={updateName} onChange={(e) => setUpdateName(e.target.value)} />
 
@@ -298,22 +305,16 @@ function People() {
             <input type="text" value={updateAffiliation} onChange={(e) => setUpdateAffiliation(e.target.value)} />
 
             <div className="form-group">
-                <label>New Role:</label>
-                <select 
-                    className="form-control"
-                    value={updateRole}
-                    onChange={(e) => setUpdateRole(e.target.value)}
-                >
+                <label htmlFor="updateRole">New Role:</label>
+                <select id="updateRole" className="form-control" value={updateRole} onChange={(e) => setUpdateRole(e.target.value)}>
                     <option value="">Select a role</option>
                     {Object.entries(roleOptions).map(([code, role]) => (
-                        <option key={code} value={code}>
-                            {role}
-                        </option>
+                        <option key={code} value={code}>{role}</option>
                     ))}
                 </select>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={cancelUpdate}>Cancel</button>
                 <button type="submit">Submit</button>
             </div>
@@ -328,7 +329,7 @@ function People() {
         <div className="wrapper">
             <header>
                 <h1>View All People</h1>
-                <div style={{display: "flex", flexDirection: "column", alignItems: "start", gap: "10px"}}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: '10px' }}>
                     <button type="button" onClick={showAddPersonForm}>
                         Add a Person
                     </button>
@@ -342,11 +343,11 @@ function People() {
                 setError={setError}
             />
 
-            {error && <ErrorMessage message={error}/>}
+            {error && <ErrorMessage message={error} />}
 
             {people.map((person) => (
                 <Person
-                    key={person.name}
+                    key={person.email}
                     person={person}
                     onUpdate={handleUpdate}
                     onDelete={handleDelete}
@@ -359,4 +360,3 @@ function People() {
 }
 
 export default People;
-
