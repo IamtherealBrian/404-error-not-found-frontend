@@ -47,7 +47,13 @@ function PeopleDetail() {
                 <p><strong>Email:</strong> {people.email}</p>
                 <p><strong>Affiliation:</strong> {people.affiliation}</p>
                 <p>
-                    <strong>Roles:</strong> {Array.isArray(people.roles) ? people.roles.join(', ') : people.roles}
+                    {/*<strong>Roles:</strong> {Array.isArray(people.roles) ? people.roles.join(', ') : people.roles}*/}
+                    <strong>Roles:</strong>{' '}
+                    {
+                        Array.isArray(people.roles) && people.roles.length > 0
+                            ? people.roles.join(', ')
+                            : 'No roles defined'
+                    }
                 </p>
             </div>
         </div>
