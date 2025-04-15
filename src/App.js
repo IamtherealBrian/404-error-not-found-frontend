@@ -39,7 +39,7 @@ function App() {
 
     return (
         <BrowserRouter>
-            <Navbar />
+            <Navbar isAuthenticated={isAuthenticated} />
             <Routes>
                 <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
                 <Route path="/" element={<ProtectedRoute element={<Home isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} isAuthenticated={isAuthenticated} />} />

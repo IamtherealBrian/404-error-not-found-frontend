@@ -108,6 +108,8 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
         setLoading(true);
         try {
             const { data } = await axios.get(TEXT_READ_ENDPOINT);
+            console.log('Fetched data:', data);
+            
             const textsArray = Array.isArray(data) ? data : textsObjectToArray(data);
             setTexts(textsArray);
         } catch (err) {
@@ -176,7 +178,7 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
             )}
 
             <header>
-                <h1>Journel Text</h1>
+                <h1>Journal Text</h1>
                 <button type="button" onClick={() => setAddingText(true)}>add text</button>
             </header>
 
