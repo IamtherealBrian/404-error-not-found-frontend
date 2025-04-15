@@ -43,9 +43,10 @@ function PeopleDetail() {
                 ← Back to People
             </button>
             <h1>{people.name}</h1>
-            <div style={{ marginTop: '20px' }}>
+            <div style={{marginTop: '20px'}}>
                 <p><strong>Email:</strong> {people.email}</p>
-                <p><strong>Affiliation:</strong> {people.affiliation}</p>
+                {/*<p><strong>Affiliation:</strong> {people.affiliation}</p>*/}
+                <p><strong>Affiliation:</strong> {people.affiliation || 'No affiliation provided'}</p>
                 <p>
                     {/*<strong>Roles:</strong> {Array.isArray(people.roles) ? people.roles.join(', ') : people.roles}*/}
                     <strong>Roles:</strong>{' '}
