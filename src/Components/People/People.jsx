@@ -169,7 +169,7 @@ function Person({ person, onUpdate, onDelete, isUpdating, updateForm }) {
                 <h2>{name}</h2>
                 <p>Email: {email}</p>
                 <p>Affiliation: {affiliation}</p>
-                <p>Roles: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
+                <p>Role: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
             </Link>
             <div className="person-actions">
                 <button onClick={() => onUpdate(person)}>Update</button>

@@ -27,42 +27,41 @@ describe("LoginPage Component", () => {
         jest.clearAllMocks();
     });
 
-    test("renders Login form with email and name inputs and Login button", () => {
+    test("renders Login form with email and password inputs and Login button", () => {
         render(<LoginPage setIsAuthenticated={jest.fn()} />);
         expect(screen.getByPlaceholderText(/Email/i)).toBeInTheDocument();
-        expect(screen.getByPlaceholderText(/Name/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/Password/i)).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /Login/i })).toBeInTheDocument();
     });
 
     test("shows error message when user does not exist", async () => {
-        jest.spyOn(axios, "get").mockResolvedValueOnce({ data: {} });
+        jest.spyOn(axios, "post").mockRejectedValueOnce({ 
+            response: { status: 401, data: { message: "Invalid email or password." } } 
+        });
         const setIsAuthenticatedMock = jest.fn();
         render(<LoginPage setIsAuthenticated={setIsAuthenticatedMock} />);
         userEvent.type(screen.getByPlaceholderText(/Email/i), "test@example.com");
-        userEvent.type(screen.getByPlaceholderText(/Name/i), "TestUser");
+        userEvent.type(screen.getByPlaceholderText(/Password/i), "password123");
         userEvent.click(screen.getByRole("button", { name: /Login/i }));
         await waitFor(() => {
-            expect(screen.getByText(/Invalid email or name/i)).toBeInTheDocument();
+            expect(screen.getByText(/Invalid email or password/i)).toBeInTheDocument();
         });
         expect(setIsAuthenticatedMock).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     test("logs in successfully and navigates to home when user exists", async () => {
-        const mockData = {
-            user1: { email: "test@example.com", name: "TestUser" }
-        };
-        jest.spyOn(axios, "get").mockResolvedValueOnce({ data: mockData });
+        jest.spyOn(axios, "post").mockResolvedValueOnce({ status: 200 });
         const setIsAuthenticatedMock = jest.fn();
         render(<LoginPage setIsAuthenticated={setIsAuthenticatedMock} />);
         userEvent.type(screen.getByPlaceholderText(/Email/i), "test@example.com");
-        userEvent.type(screen.getByPlaceholderText(/Name/i), "TestUser");
+        userEvent.type(screen.getByPlaceholderText(/Password/i), "password123");
         userEvent.click(screen.getByRole("button", { name: /Login/i }));
         await waitFor(() => {
             expect(setIsAuthenticatedMock).toHaveBeenCalledWith(true);
-            expect(window.localStorage.setItem).toHaveBeenCalledWith("username", "TestUser");
+            expect(window.localStorage.setItem).toHaveBeenCalledWith("username", "test@example.com");
             expect(mockNavigate).toHaveBeenCalledWith("/");
         });
-        expect(screen.queryByText(/Invalid email or name/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Invalid email or password/i)).not.toBeInTheDocument();
     });
 });
