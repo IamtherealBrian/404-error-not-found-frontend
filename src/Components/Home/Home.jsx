@@ -109,11 +109,11 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
         try {
             const { data } = await axios.get(TEXT_READ_ENDPOINT);
             console.log('Fetched data:', data);
-            
+
             const textsArray = Array.isArray(data) ? data : textsObjectToArray(data);
             setTexts(textsArray);
         } catch (err) {
-            setError({err});
+            setError({ err });
         } finally {
             setLoading(false);
         }
@@ -133,6 +133,13 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
             .catch((error) => {
                 setError(`error message: ${error.response?.data?.message || error.message}`);
             });
+    };
+
+    // Confirmation wrapper
+    const confirmAndDelete = (key) => {
+        if (window.confirm("Are you sure you want to delete this journal text?")) {
+            deleteText(key);
+        }
     };
 
     const handleUpdate = (text) => {
@@ -191,7 +198,7 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
                     <div key={text.key} className="text-item">
                         <h2>{text.title}</h2>
                         <p>{text.text}</p>
-                        <button onClick={() => deleteText(text.key)}>DELETE</button>
+                        <button onClick={() => confirmAndDelete(text.key)}>DELETE</button>
                         <button onClick={() => handleUpdate(text)}>UPDATE</button>
                     </div>
                 ))
