@@ -57,7 +57,11 @@ function Submissions() {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
             const array = Object.keys(data).map((key) => data[key]);
-            setManuscripts(array);
+            // Filter out manuscripts that are rejected or withdrawn
+            const filtered = array.filter(
+                paper => paper.state !== 'Rejected' && paper.state !== 'Withdrawn'
+            );
+            setManuscripts(filtered);
         } catch (err) {
             setError(`Error fetching manuscripts: ${err.message}`);
         }
