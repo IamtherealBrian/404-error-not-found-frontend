@@ -195,7 +195,7 @@ function People() {
     const [updateEmail, setUpdateEmail] = useState('');
     const [updateName, setUpdateName] = useState('');
     const [updateAffiliation, setUpdateAffiliation] = useState('');
-    const [updateRole, setUpdateRole] = useState('');
+    const [updateRole, setUpdateRole] = useState([]);
     const [roleOptions, setRoleOptions] = useState({});
 
     const handleUpdate = (person) => {
@@ -203,7 +203,7 @@ function People() {
         setUpdateEmail(person.email);
         setUpdateName(person.name);
         setUpdateAffiliation(person.affiliation || '');
-        setUpdateRole(Array.isArray(person.roles) ? person.roles[0] : person.roles || '');
+        setUpdateRole(Array.isArray(person.roles) ? person.roles : [person.roles || '']);
     };
 
     const cancelUpdate = () => {
@@ -211,7 +211,7 @@ function People() {
         setUpdateEmail('');
         setUpdateName('');
         setUpdateAffiliation('');
-        setUpdateRole('');
+        setUpdateRole([]);
     };
 
     const handleDelete = (email) => {
@@ -257,6 +257,7 @@ function People() {
             affiliation: updateAffiliation || undefined,
             roles: updateRole,
         };
+
 
         axios.put(PEOPLE_READ_ENDPOINT, JSON.stringify(updatedData), {
             headers: {
@@ -306,15 +307,21 @@ function People() {
 
             <div className="form-group">
                 <label htmlFor="updateRole">New Role:</label>
-                <select id="updateRole" className="form-control" value={updateRole} onChange={(e) => setUpdateRole(e.target.value)}>
-                    <option value="">Select a role</option>
+                <select
+                    id="updateRole"
+                    className="form-control"
+                    multiple
+                    value={updateRole}
+                    onChange={(e) => setUpdateRole(Array.from(e.target.selectedOptions, option => option.value))}
+                >
                     {Object.entries(roleOptions).map(([code, role]) => (
                         <option key={code} value={code}>{role}</option>
                     ))}
                 </select>
+
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px'}}>
                 <button type="button" onClick={cancelUpdate}>Cancel</button>
                 <button type="submit">Submit</button>
             </div>
