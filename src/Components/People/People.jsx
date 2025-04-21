@@ -11,24 +11,18 @@ const PEOPLE_CREATE_ENDPOINT = `${BACKEND_URL}/people`;
 const PEOPLE_DELETE_ENDPOINT = `${BACKEND_URL}/people`;
 const ROLES_ENDPOINT = `${BACKEND_URL}/roles`;
 
-// 添加人员表单组件，支持多选 roles
 function AddPersonForm({ visible, cancel, fetchPeople, setError }) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [affiliation, setAffiliation] = useState('');
-    // roles 用数组存储，初始为空数组
-    const [roles, setRoles] = useState([]);
+    const [roles, setRoles] = useState('');
     const [loading, setLoading] = useState(false);
     const [roleOptions, setRoleOptions] = useState({});
 
     const changeName = (event) => setName(event.target.value);
     const changeEmail = (event) => setEmail(event.target.value);
     const changeAffiliation = (event) => setAffiliation(event.target.value);
-    // 处理多选下拉菜单，收集所有被选中的 option 的值
-    const changeRoles = (event) => {
-        const selected = Array.from(event.target.selectedOptions, option => option.value);
-        setRoles(selected);
-    };
+    const changeRoles = (event) => setRoles(event.target.value);
 
     useEffect(() => {
         const fetchRoles = async () => {
@@ -51,8 +45,7 @@ function AddPersonForm({ visible, cancel, fetchPeople, setError }) {
         const newPerson = {
             name: name.trim(),
             email: email.trim(),
-            // 此处发送的是角色数组
-            roles: roles,
+            roles: roles, // Sent as a string instead of an array
             affiliation: affiliation.trim(),
         };
 
@@ -113,19 +106,15 @@ function AddPersonForm({ visible, cancel, fetchPeople, setError }) {
             </div>
 
             <div className="form-group">
-                <label htmlFor="roles">Roles (multiple selection):</label>
+                <label htmlFor="roles">Roles:</label>
                 <select
                     id="roles"
                     className="form-control"
                     value={roles}
                     onChange={changeRoles}
-                    multiple    // 增加 multiple 属性
                     required
                 >
-                    {/* 多选时可以不显示默认空选项，也可以保留一个提示 */}
-                    <option value="" disabled>
-                        Select one or more roles
-                    </option>
+                    <option value="">Select a role</option>
                     {Object.entries(roleOptions).map(([code, role]) => (
                         <option key={code} value={code}>
                             {role}
@@ -169,7 +158,7 @@ function Person({ person, onUpdate, onDelete, isUpdating, updateForm }) {
                 <h2>{name}</h2>
                 <p>Email: {email}</p>
                 <p>Affiliation: {affiliation}</p>
-                <p>Role: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
+                <p>Roles: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
             </Link>
             <div className="person-actions">
                 <button onClick={() => onUpdate(person)}>Update</button>
@@ -206,8 +195,7 @@ function People() {
     const [updateEmail, setUpdateEmail] = useState('');
     const [updateName, setUpdateName] = useState('');
     const [updateAffiliation, setUpdateAffiliation] = useState('');
-    // 对于更新，也支持多个角色，存储为数组
-    const [updateRoles, setUpdateRoles] = useState([]);
+    const [updateRole, setUpdateRole] = useState('');
     const [roleOptions, setRoleOptions] = useState({});
 
     const handleUpdate = (person) => {
@@ -215,8 +203,7 @@ function People() {
         setUpdateEmail(person.email);
         setUpdateName(person.name);
         setUpdateAffiliation(person.affiliation || '');
-        // 如果后端返回的是数组，直接使用，否则转为数组
-        setUpdateRoles(Array.isArray(person.roles) ? person.roles : person.roles ? [person.roles] : []);
+        setUpdateRole(Array.isArray(person.roles) ? person.roles[0] : person.roles || '');
     };
 
     const cancelUpdate = () => {
@@ -224,7 +211,7 @@ function People() {
         setUpdateEmail('');
         setUpdateName('');
         setUpdateAffiliation('');
-        setUpdateRoles([]);
+        setUpdateRole('');
     };
 
     const handleDelete = (email) => {
@@ -255,13 +242,7 @@ function People() {
             }
         };
         fetchRoles();
-    }, [setError]);
-
-    // 更新时：处理多选角色变化事件
-    const changeUpdateRoles = (event) => {
-        const selected = Array.from(event.target.selectedOptions, option => option.value);
-        setUpdateRoles(selected);
-    };
+    }, []);
 
     const updatePerson = (event) => {
         event.preventDefault();
@@ -274,8 +255,7 @@ function People() {
             email: updateEmail,
             name: updateName || undefined,
             affiliation: updateAffiliation || undefined,
-            // 更新时传递角色数组
-            roles: updateRoles,
+            roles: updateRole,
         };
 
         axios.put(PEOPLE_READ_ENDPOINT, JSON.stringify(updatedData), {
@@ -325,17 +305,9 @@ function People() {
             <input type="text" value={updateAffiliation} onChange={(e) => setUpdateAffiliation(e.target.value)} />
 
             <div className="form-group">
-                <label htmlFor="updateRoles">New Roles (multiple selection):</label>
-                <select
-                    id="updateRoles"
-                    className="form-control"
-                    value={updateRoles}
-                    onChange={changeUpdateRoles}
-                    multiple  // 增加多选
-                >
-                    <option value="" disabled>
-                        Select one or more roles
-                    </option>
+                <label htmlFor="updateRole">New Role:</label>
+                <select id="updateRole" className="form-control" value={updateRole} onChange={(e) => setUpdateRole(e.target.value)}>
+                    <option value="">Select a role</option>
                     {Object.entries(roleOptions).map(([code, role]) => (
                         <option key={code} value={code}>{role}</option>
                     ))}
