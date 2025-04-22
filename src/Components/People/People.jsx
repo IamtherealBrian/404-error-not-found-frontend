@@ -162,12 +162,21 @@ function Person({ person, onUpdate, onDelete, isUpdating, updateForm }) {
             </Link>
             <div className="person-actions">
                 <button onClick={() => onUpdate(person)}>Update</button>
-                <button onClick={() => onDelete(email)}>Delete</button>
+                <button
+                    onClick={() => {
+                        if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+                            onDelete(email);
+                        }
+                    }}
+                >
+                    Delete
+                </button>
             </div>
             {isUpdating && updateForm}
         </div>
     );
 }
+
 
 Person.propTypes = {
     person: propTypes.shape({
