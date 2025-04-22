@@ -56,11 +56,12 @@ NavItem.propTypes = {
 
 function Navbar({ isAuthenticated }) {
     return (
-        <nav>
+        // <nav>
+        <nav role="navigation" aria-label="Primary">
             <ul className="nav-list">
                 {PAGES.filter(page => !(isAuthenticated && page.label === "Login"))
                     .map((page) => (
-                        <NavItem key={page.destination} page={page} />
+                        <NavItem key={page.destination} page={page}/>
                     ))}
             </ul>
         </nav>
