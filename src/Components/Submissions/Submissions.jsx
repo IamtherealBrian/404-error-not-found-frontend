@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../../constants';
+import './Submissions.css';
 
-const MANUSCRIPT_READ_ENDPOINT = `${BACKEND_URL}/manuscript/read`;
-const MANUSCRIPT_CREATE_ENDPOINT = `${BACKEND_URL}/manuscript/create`;
-const MANUSCRIPT_UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
-const MANUSCRIPT_DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
+const MANUSCRIPT_READ_ENDPOINT    = `${BACKEND_URL}/manuscript/read`;
+const MANUSCRIPT_CREATE_ENDPOINT  = `${BACKEND_URL}/manuscript/create`;
+const MANUSCRIPT_UPDATE_ENDPOINT  = `${BACKEND_URL}/manuscript/update`;
+const MANUSCRIPT_DELETE_ENDPOINT  = `${BACKEND_URL}/manuscript/delete`;
 
 const STATE_TRANSITIONS = {
     'SUB': ['Rejected', 'Referee Review', 'Withdrawn'],
@@ -28,10 +29,8 @@ const STATE_TRANSITIONS = {
     'Rejected': [],
     'Withdrawn': []
 };
-
-const getNextPossibleStates = (currentState) => {
-    return STATE_TRANSITIONS[currentState] || [];
-};
+const getNextPossibleStates = (currentState) =>
+    STATE_TRANSITIONS[currentState] || [];
 
 function Submissions() {
     const navigate = useNavigate();
@@ -40,8 +39,6 @@ function Submissions() {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [editingManuscript, setEditingManuscript] = useState(null);
     const [editedData, setEditedData] = useState({});
-    
-    // For creating a new manuscript
     const [newManuscript, setNewManuscript] = useState({
         title: '',
         author: '',
@@ -52,15 +49,11 @@ function Submissions() {
         state: 'SUB'
     });
 
-    // Fetch all manuscripts
     const fetchManuscripts = async () => {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
-            const array = Object.keys(data).map((key) => data[key]);
-            // Filter out manuscripts that are rejected or withdrawn
-            const filtered = array.filter(
-                paper => paper.state !== 'Rejected' && paper.state !== 'Withdrawn'
-            );
+            const array = Object.values(data);
+            const filtered = array.filter(m => m.state !== 'Rejected' && m.state !== 'Withdrawn');
             setManuscripts(filtered);
         } catch (err) {
             setError(`Error fetching manuscripts: ${err.message}`);
@@ -71,16 +64,11 @@ function Submissions() {
         fetchManuscripts();
     }, []);
 
-    // Handle changes in the "create new manuscript" form
     const handleNewManuscriptChange = (e) => {
         const { name, value } = e.target;
-        setNewManuscript((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+        setNewManuscript(prev => ({ ...prev, [name]: value }));
     };
 
-    // Create a new manuscript
     const createManuscript = async () => {
         setError('');
         if (!newManuscript.title.trim()) {
@@ -114,33 +102,22 @@ function Submissions() {
         }
     };
 
-    // Start editing a manuscript
-    const startEditing = (manuscript) => {
-        setEditingManuscript(manuscript.title);
-        setEditedData({ ...manuscript });
+    const startEditing = (m) => {
+        setEditingManuscript(m.title);
+        setEditedData({ ...m });
     };
 
-    // Handle changes in the "edit existing manuscript" form
     const handleEditInputChange = (e) => {
         const { name, value } = e.target;
-        setEditedData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+        setEditedData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Cancel editing
     const cancelEditing = () => {
-        // Confirm with the user before discarding changes
-        if (!window.confirm("Are you sure you want to discard your changes?")) {
-            return;
-        }
-
+        if (!window.confirm("Are you sure you want to discard your changes?")) return;
         setEditingManuscript(null);
         setEditedData({});
     };
 
-    // Update an existing manuscript
     const updateManuscript = async () => {
         try {
             const response = await axios.put(MANUSCRIPT_UPDATE_ENDPOINT, editedData);
@@ -156,17 +133,10 @@ function Submissions() {
         }
     };
 
-    // Delete a manuscript
     const deleteManuscript = async (title) => {
-        // Prompt the user for confirmation
-        if (!window.confirm(`Are you sure you want to delete "${title}"?`)) {
-            return;
-        }
-
+        if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
         try {
-            const response = await axios.delete(MANUSCRIPT_DELETE_ENDPOINT, {
-                data: { title },
-            });
+            const response = await axios.delete(MANUSCRIPT_DELETE_ENDPOINT, { data: { title } });
             if (response.status === 200) {
                 fetchManuscripts();
             } else {
@@ -178,9 +148,18 @@ function Submissions() {
     };
 
     return (
-        <div>
+        <div className="wrapper">
             <h1>Manuscripts</h1>
-            {error && <div style={{ color: 'red' }}>{error}</div>}
+
+            <div className="submission-guidelines">
+                <h2>Submission Guidelines</h2>
+                <ul>
+                    <li>Include Title, Author, Author Email, Abstract, Main Text, and Editor Email.</li>
+                    <li>Work must be original and not under review elsewhere.</li>
+                </ul>
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
 
             {!showCreateForm && (
                 <button onClick={() => setShowCreateForm(true)}>
@@ -189,10 +168,11 @@ function Submissions() {
             )}
 
             {showCreateForm && (
-                <div style={{ border: '1px solid #ccc', padding: '10px', margin: '10px 0' }}>
+                <div className="submission-create-form">
                     <h2>Create New Manuscript</h2>
+
                     <label>
-                        Title:
+                        Title:<br />
                         <input
                             type="text"
                             name="title"
@@ -201,8 +181,9 @@ function Submissions() {
                         />
                     </label>
                     <br />
+
                     <label>
-                        Author:
+                        Author:<br />
                         <input
                             type="text"
                             name="author"
@@ -211,8 +192,9 @@ function Submissions() {
                         />
                     </label>
                     <br />
+
                     <label>
-                        Author Email:
+                        Author Email:<br />
                         <input
                             type="email"
                             name="author_email"
@@ -221,26 +203,31 @@ function Submissions() {
                         />
                     </label>
                     <br />
+
                     <label>
-                        Abstract:
+                        Abstract:<br />
                         <textarea
                             name="abstract"
+                            className="large-textarea"
                             value={newManuscript.abstract}
                             onChange={handleNewManuscriptChange}
                         />
                     </label>
                     <br />
+
                     <label>
-                        Text:
+                        Text:<br />
                         <textarea
                             name="text"
+                            className="large-textarea"
                             value={newManuscript.text}
                             onChange={handleNewManuscriptChange}
                         />
                     </label>
                     <br />
+
                     <label>
-                        Editor Email:
+                        Editor Email:<br />
                         <input
                             type="email"
                             name="editor_email"
@@ -249,31 +236,25 @@ function Submissions() {
                         />
                     </label>
                     <br />
+
                     <button onClick={createManuscript}>Create</button>
                     <button onClick={() => setShowCreateForm(false)}>Cancel</button>
                 </div>
             )}
 
             <h2>Existing Manuscripts</h2>
-            {manuscripts.map((m) => (
-                <div
-                    key={m.title}
-                    style={{ border: '1px solid #ccc', padding: '10px', margin: '10px 0' }}
-                >
+            {manuscripts.map(m => (
+                <div key={m.title} className="submission-container">
                     {editingManuscript === m.title ? (
                         <div>
                             <label>
-                                Title:
-                                <input
-                                    type="text"
-                                    name="title"
-                                    value={editedData.title}
-                                    disabled
-                                />
+                                Title:<br />
+                                <input type="text" name="title" value={editedData.title} disabled />
                             </label>
                             <br />
+
                             <label>
-                                Author:
+                                Author:<br />
                                 <input
                                     type="text"
                                     name="author"
@@ -282,8 +263,9 @@ function Submissions() {
                                 />
                             </label>
                             <br />
+
                             <label>
-                                Author Email:
+                                Author Email:<br />
                                 <input
                                     type="email"
                                     name="author_email"
@@ -292,26 +274,31 @@ function Submissions() {
                                 />
                             </label>
                             <br />
+
                             <label>
-                                Abstract:
+                                Abstract:<br />
                                 <textarea
                                     name="abstract"
+                                    className="large-textarea"
                                     value={editedData.abstract}
                                     onChange={handleEditInputChange}
                                 />
                             </label>
                             <br />
+
                             <label>
-                                Text:
+                                Text:<br />
                                 <textarea
                                     name="text"
+                                    className="large-textarea"
                                     value={editedData.text}
                                     onChange={handleEditInputChange}
                                 />
                             </label>
                             <br />
+
                             <label>
-                                Editor Email:
+                                Editor Email:<br />
                                 <input
                                     type="email"
                                     name="editor_email"
@@ -320,49 +307,33 @@ function Submissions() {
                                 />
                             </label>
                             <br />
+
                             <label>
-                                Current State:
+                                Current State:<br />
                                 <select
                                     name="state"
-                                    value={editedData.state || ''}
+                                    value={editedData.state}
                                     onChange={handleEditInputChange}
                                 >
                                     <option value={editedData.state}>{editedData.state}</option>
-                                    {getNextPossibleStates(editedData.state).map((nextState) => (
-                                        <option key={nextState} value={nextState}>
-                                            {nextState}
-                                        </option>
+                                    {getNextPossibleStates(editedData.state).map(ns => (
+                                        <option key={ns} value={ns}>{ns}</option>
                                     ))}
                                 </select>
                             </label>
                             <br />
+
                             <button onClick={updateManuscript}>Save</button>
                             <button onClick={cancelEditing}>Cancel</button>
                         </div>
                     ) : (
-                        <div>
-                            <div 
-                                style={{ 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    alignItems: 'center'
-                                }}
-                            >
-                                <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/submissions/${encodeURIComponent(m.title)}`)}>
-                                    <h3>{m.title}</h3>
-                                    <p><strong>Author:</strong> {m.author}</p>
-                                    <p><strong>Current State:</strong> {m.state || '(not set)'}</p>
-                                </div>
-                                <div>
-                                    <button onClick={(e) => {
-                                        e.stopPropagation();
-                                        startEditing(m);
-                                    }}>Edit</button>
-                                    <button onClick={(e) => {
-                                        e.stopPropagation();
-                                        deleteManuscript(m.title);
-                                    }}>Delete</button>
-                                </div>
+                        <div className="submission-display" onClick={() => navigate(`/submissions/${encodeURIComponent(m.title)}`)}>
+                            <h3>{m.title}</h3>
+                            <p><strong>Author:</strong> {m.author}</p>
+                            <p><strong>Current State:</strong> {m.state || '(not set)'}</p>
+                            <div className="submission-actions">
+                                <button onClick={e => { e.stopPropagation(); startEditing(m); }}>Edit</button>
+                                <button onClick={e => { e.stopPropagation(); deleteManuscript(m.title); }}>Delete</button>
                             </div>
                         </div>
                     )}

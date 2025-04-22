@@ -1,6 +1,27 @@
-/* src/Components/Submissions/Submissions.css */
 .wrapper {
     margin: 20px;
+}
+
+.submission-guidelines {
+    background-color: #f9f9f9;
+    border-left: 4px solid #8b5e3c;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.submission-guidelines h2 {
+    margin-top: 0;
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.submission-guidelines ul {
+    margin: 0.5em 0 0 1.2em;
+}
+
+.submission-guidelines li {
+    margin-bottom: 0.4em;
+    line-height: 1.4;
 }
 
 .submission-container {
@@ -11,4 +32,27 @@
 
 .error-message {
     color: red;
+}
+
+.submission-display {
+    cursor: pointer;
+}
+
+.submission-actions {
+    margin-top: 10px;
+}
+
+.submission-actions button {
+    margin-right: 8px;
+}
+
+/* Make the Abstract and Text fields larger */
+.large-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+    box-sizing: border-box;
 }
