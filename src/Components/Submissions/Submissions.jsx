@@ -10,25 +10,26 @@ const MANUSCRIPT_UPDATE_ENDPOINT  = `${BACKEND_URL}/manuscript/update`;
 const MANUSCRIPT_DELETE_ENDPOINT  = `${BACKEND_URL}/manuscript/delete`;
 
 const STATE_TRANSITIONS = {
-    'SUB': ['Rejected', 'Referee Review', 'Withdrawn'],
-    'Submitted': ['Rejected', 'Referee Review', 'Withdrawn'],
-    'REF': ['Rejected', 'Submitted', 'Copy Edit', 'Author Revisions', 'Referee Review', 'Withdrawn'],
+    SUB: ['Rejected', 'Referee Review', 'Withdrawn'],
+    Submitted: ['Rejected', 'Referee Review', 'Withdrawn'],
+    REF: ['Rejected', 'Submitted', 'Copy Edit', 'Author Revisions', 'Referee Review', 'Withdrawn'],
     'Referee Review': ['Rejected', 'Submitted', 'Copy Edit', 'Author Revisions', 'Referee Review', 'Withdrawn'],
-    'AUTH': ['Editor Review', 'Withdrawn'],
+    AUTH: ['Editor Review', 'Withdrawn'],
     'Author Revisions': ['Editor Review', 'Withdrawn'],
-    'ED': ['Copy Edit', 'Withdrawn'],
+    ED: ['Copy Edit', 'Withdrawn'],
     'Editor Review': ['Copy Edit', 'Withdrawn'],
-    'CE': ['Author Review', 'Withdrawn'],
+    CE: ['Author Review', 'Withdrawn'],
     'Copy Edit': ['Author Review', 'Withdrawn'],
-    'AR': ['Formatting', 'Withdrawn'],
+    AR: ['Formatting', 'Withdrawn'],
     'Author Review': ['Formatting', 'Withdrawn'],
-    'FOR': ['Published', 'Withdrawn'],
-    'Formatting': ['Published', 'Withdrawn'],
-    'PUB': ['Withdrawn'],
-    'Published': ['Withdrawn'],
-    'Rejected': [],
-    'Withdrawn': []
+    FOR: ['Published', 'Withdrawn'],
+    Formatting: ['Published', 'Withdrawn'],
+    PUB: ['Withdrawn'],
+    Published: ['Withdrawn'],
+    Rejected: [],
+    Withdrawn: []
 };
+
 const getNextPossibleStates = (currentState) =>
     STATE_TRANSITIONS[currentState] || [];
 
@@ -46,14 +47,15 @@ function Submissions() {
         abstract: '',
         text: '',
         editor_email: '',
-        state: 'SUB'
+        state: 'SUB',
+        file: null
     });
 
     const fetchManuscripts = async () => {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
-            const array = Object.values(data);
-            const filtered = array.filter(m => m.state !== 'Rejected' && m.state !== 'Withdrawn');
+            const filtered = Object.values(data)
+                .filter(m => m.state !== 'Rejected' && m.state !== 'Withdrawn');
             setManuscripts(filtered);
         } catch (err) {
             setError(`Error fetching manuscripts: ${err.message}`);
@@ -64,9 +66,14 @@ function Submissions() {
         fetchManuscripts();
     }, []);
 
-    const handleNewManuscriptChange = (e) => {
+    const handleNewChange = (e) => {
         const { name, value } = e.target;
         setNewManuscript(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setNewManuscript(prev => ({ ...prev, file }));
     };
 
     const createManuscript = async () => {
@@ -79,9 +86,23 @@ function Submissions() {
             setError("A manuscript with this title already exists. Please choose a different title.");
             return;
         }
-
         try {
-            const response = await axios.post(MANUSCRIPT_CREATE_ENDPOINT, newManuscript);
+            const formData = new FormData();
+            formData.append('title', newManuscript.title);
+            formData.append('author', newManuscript.author);
+            formData.append('author_email', newManuscript.author_email);
+            formData.append('abstract', newManuscript.abstract);
+            formData.append('text', newManuscript.text);
+            formData.append('editor_email', newManuscript.editor_email);
+            formData.append('state', newManuscript.state);
+            if (newManuscript.file) {
+                formData.append('file', newManuscript.file);
+            }
+            const response = await axios.post(
+                MANUSCRIPT_CREATE_ENDPOINT,
+                formData,
+                { headers: { 'Content-Type': 'multipart/form-data' } }
+            );
             if (response.status === 200) {
                 fetchManuscripts();
                 setNewManuscript({
@@ -91,7 +112,8 @@ function Submissions() {
                     abstract: '',
                     text: '',
                     editor_email: '',
-                    state: 'SUB'
+                    state: 'SUB',
+                    file: null
                 });
                 setShowCreateForm(false);
             } else {
@@ -150,7 +172,6 @@ function Submissions() {
     return (
         <div className="wrapper">
             <h1>Manuscripts</h1>
-
             <div className="submission-guidelines">
                 <h2>Submission Guidelines</h2>
                 <ul>
@@ -158,171 +179,71 @@ function Submissions() {
                     <li>Work must be original and not under review elsewhere.</li>
                 </ul>
             </div>
-
             {error && <div className="error-message">{error}</div>}
-
             {!showCreateForm && (
                 <button onClick={() => setShowCreateForm(true)}>
                     Create a new submission
                 </button>
             )}
-
             {showCreateForm && (
                 <div className="submission-create-form">
                     <h2>Create New Manuscript</h2>
-
-                    <label>
-                        Title:<br />
-                        <input
-                            type="text"
-                            name="title"
-                            value={newManuscript.title}
-                            onChange={handleNewManuscriptChange}
-                        />
-                    </label>
-                    <br />
-
-                    <label>
-                        Author:<br />
-                        <input
-                            type="text"
-                            name="author"
-                            value={newManuscript.author}
-                            onChange={handleNewManuscriptChange}
-                        />
-                    </label>
-                    <br />
-
-                    <label>
-                        Author Email:<br />
-                        <input
-                            type="email"
-                            name="author_email"
-                            value={newManuscript.author_email}
-                            onChange={handleNewManuscriptChange}
-                        />
-                    </label>
-                    <br />
-
-                    <label>
-                        Abstract:<br />
-                        <textarea
-                            name="abstract"
-                            className="large-textarea"
-                            value={newManuscript.abstract}
-                            onChange={handleNewManuscriptChange}
-                        />
-                    </label>
-                    <br />
-
-                    <label>
-                        Text:<br />
-                        <textarea
-                            name="text"
-                            className="large-textarea"
-                            value={newManuscript.text}
-                            onChange={handleNewManuscriptChange}
-                        />
-                    </label>
-                    <br />
-
-                    <label>
-                        Editor Email:<br />
-                        <input
-                            type="email"
-                            name="editor_email"
-                            value={newManuscript.editor_email}
-                            onChange={handleNewManuscriptChange}
-                        />
-                    </label>
-                    <br />
-
+                    <label>Title:<br/>
+                        <input type="text" name="title" value={newManuscript.title} onChange={handleNewChange} />
+                    </label><br/>
+                    <label>Author:<br/>
+                        <input type="text" name="author" value={newManuscript.author} onChange={handleNewChange} />
+                    </label><br/>
+                    <label>Author Email:<br/>
+                        <input type="email" name="author_email" value={newManuscript.author_email} onChange={handleNewChange} />
+                    </label><br/>
+                    <label>Abstract:<br/>
+                        <textarea name="abstract" className="large-textarea" value={newManuscript.abstract} onChange={handleNewChange} />
+                    </label><br/>
+                    <label>Text:<br/>
+                        <textarea name="text" className="large-textarea" value={newManuscript.text} onChange={handleNewChange} />
+                    </label><br/>
+                    <label>Editor Email:<br/>
+                        <input type="email" name="editor_email" value={newManuscript.editor_email} onChange={handleNewChange} />
+                    </label><br/>
+                    <label>Upload PDF/Word:<br/>
+                        <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
+                    </label><br/>
                     <button onClick={createManuscript}>Create</button>
                     <button onClick={() => setShowCreateForm(false)}>Cancel</button>
                 </div>
             )}
-
             <h2>Existing Manuscripts</h2>
             {manuscripts.map(m => (
                 <div key={m.title} className="submission-container">
                     {editingManuscript === m.title ? (
                         <div>
-                            <label>
-                                Title:<br />
+                            <label>Title:<br/>
                                 <input type="text" name="title" value={editedData.title} disabled />
-                            </label>
-                            <br />
-
-                            <label>
-                                Author:<br />
-                                <input
-                                    type="text"
-                                    name="author"
-                                    value={editedData.author}
-                                    onChange={handleEditInputChange}
-                                />
-                            </label>
-                            <br />
-
-                            <label>
-                                Author Email:<br />
-                                <input
-                                    type="email"
-                                    name="author_email"
-                                    value={editedData.author_email}
-                                    onChange={handleEditInputChange}
-                                />
-                            </label>
-                            <br />
-
-                            <label>
-                                Abstract:<br />
-                                <textarea
-                                    name="abstract"
-                                    className="large-textarea"
-                                    value={editedData.abstract}
-                                    onChange={handleEditInputChange}
-                                />
-                            </label>
-                            <br />
-
-                            <label>
-                                Text:<br />
-                                <textarea
-                                    name="text"
-                                    className="large-textarea"
-                                    value={editedData.text}
-                                    onChange={handleEditInputChange}
-                                />
-                            </label>
-                            <br />
-
-                            <label>
-                                Editor Email:<br />
-                                <input
-                                    type="email"
-                                    name="editor_email"
-                                    value={editedData.editor_email}
-                                    onChange={handleEditInputChange}
-                                />
-                            </label>
-                            <br />
-
-                            <label>
-                                Current State:<br />
-                                <select
-                                    name="state"
-                                    value={editedData.state}
-                                    onChange={handleEditInputChange}
-                                >
+                            </label><br/>
+                            <label>Author:<br/>
+                                <input type="text" name="author" value={editedData.author} onChange={handleEditInputChange} />
+                            </label><br/>
+                            <label>Author Email:<br/>
+                                <input type="email" name="author_email" value={editedData.author_email} onChange={handleEditInputChange} />
+                            </label><br/>
+                            <label>Abstract:<br/>
+                                <textarea name="abstract" className="large-textarea" value={editedData.abstract} onChange={handleEditInputChange} />
+                            </label><br/>
+                            <label>Text:<br/>
+                                <textarea name="text" className="large-textarea" value={editedData.text} onChange={handleEditInputChange} />
+                            </label><br/>
+                            <label>Editor Email:<br/>
+                                <input type="email" name="editor_email" value={editedData.editor_email} onChange={handleEditInputChange} />
+                            </label><br/>
+                            <label>Current State:<br/>
+                                <select name="state" value={editedData.state} onChange={handleEditInputChange}>
                                     <option value={editedData.state}>{editedData.state}</option>
                                     {getNextPossibleStates(editedData.state).map(ns => (
                                         <option key={ns} value={ns}>{ns}</option>
                                     ))}
                                 </select>
-                            </label>
-                            <br />
-
+                            </label><br/>
                             <button onClick={updateManuscript}>Save</button>
                             <button onClick={cancelEditing}>Cancel</button>
                         </div>
