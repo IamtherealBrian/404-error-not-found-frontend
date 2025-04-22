@@ -9,7 +9,16 @@ const PAGES = [
     { label: 'View Masthead', destination: '/masthead' },
 ];
 
-function NavLink({ page }) {
+// function NavLink({ page }) {
+//     const { label, destination } = page;
+//     return (
+//         <li>
+//             <Link to={destination}>{label}</Link>
+//         </li>
+//     );
+// }
+
+function NavItem({ page }) {
     const { label, destination } = page;
     return (
         <li>
@@ -18,12 +27,32 @@ function NavLink({ page }) {
     );
 }
 
-NavLink.propTypes = {
+// NavLink.propTypes = {
+//     page: PropTypes.shape({
+//         label: PropTypes.string.isRequired,
+//         destination: PropTypes.string.isRequired,
+//     }).isRequired,
+// };
+NavItem.propTypes = {
     page: PropTypes.shape({
         label: PropTypes.string.isRequired,
         destination: PropTypes.string.isRequired,
     }).isRequired,
 };
+
+
+// function Navbar({ isAuthenticated }) {
+//     return (
+//         <nav>
+//             <ul className="nav-list">
+//                 {PAGES.filter(page => !(isAuthenticated && page.label === "Login"))
+//                     .map((page) => (
+//                         <NavLink key={page.destination} page={page} />
+//                     ))}
+//             </ul>
+//         </nav>
+//     );
+// }
 
 function Navbar({ isAuthenticated }) {
     return (
@@ -31,12 +60,13 @@ function Navbar({ isAuthenticated }) {
             <ul className="nav-list">
                 {PAGES.filter(page => !(isAuthenticated && page.label === "Login"))
                     .map((page) => (
-                        <NavLink key={page.destination} page={page} />
+                        <NavItem key={page.destination} page={page} />
                     ))}
             </ul>
         </nav>
     );
 }
+
 
 Navbar.propTypes = {
     isAuthenticated: PropTypes.bool.isRequired,
