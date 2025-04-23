@@ -32,7 +32,7 @@ function AddTextForm({ visible, cancel, fetchTexts, setError }) {
             fetchTexts();
             cancel();
         } catch (error) {
-            setError(`添加文本时出现问题: ${error.response?.data?.message || error.message}`);
+            setError(`error: ${error.response?.data?.message || error.message}`);
         }
     };
 
