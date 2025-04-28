@@ -45,7 +45,7 @@ function AddPersonForm({ visible, cancel, fetchPeople, setError }) {
         const newPerson = {
             name: name.trim(),
             email: email.trim(),
-            roles: roles, // Sent as a string instead of an array
+            roles: roles,
             affiliation: affiliation.trim(),
         };
 
@@ -160,23 +160,28 @@ function Person({ person, onUpdate, onDelete, isUpdating, updateForm }) {
                 <p>Affiliation: {affiliation}</p>
                 <p>Roles: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
             </Link>
-            <div className="person-actions">
-                <button onClick={() => onUpdate(person)}>Update</button>
-                <button
-                    onClick={() => {
-                        if (window.confirm(`Are you sure you want to delete ${name}?`)) {
-                            onDelete(email);
-                        }
-                    }}
-                >
-                    Delete
-                </button>
-            </div>
+
+            {/* Only show Update/Delete buttons when not currently editing */}
+            {!isUpdating && (
+                <div className="person-actions">
+                    <button onClick={() => onUpdate(person)}>Update</button>
+                    <button
+                        onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+                                onDelete(email);
+                            }
+                        }}
+                    >
+                        Delete
+                    </button>
+                </div>
+            )}
+
+            {/* Show the inline update form when editing */}
             {isUpdating && updateForm}
         </div>
     );
 }
-
 
 Person.propTypes = {
     person: propTypes.shape({
@@ -192,8 +197,7 @@ Person.propTypes = {
 };
 
 function peopleObjectToArray(data) {
-    const keys = Object.keys(data);
-    return keys.map((key) => data[key]);
+    return Object.keys(data).map((key) => data[key]);
 }
 
 function People() {
@@ -267,7 +271,6 @@ function People() {
             roles: updateRole,
         };
 
-
         axios.put(PEOPLE_READ_ENDPOINT, JSON.stringify(updatedData), {
             headers: {
                 "Content-Type": "application/json",
@@ -321,16 +324,15 @@ function People() {
                     className="form-control"
                     multiple
                     value={updateRole}
-                    onChange={(e) => setUpdateRole(Array.from(e.target.selectedOptions, option => option.value))}
+                    onChange={(e) => setUpdateRole(Array.from(e.target.selectedOptions, opt => opt.value))}
                 >
                     {Object.entries(roleOptions).map(([code, role]) => (
                         <option key={code} value={code}>{role}</option>
                     ))}
                 </select>
-
             </div>
 
-            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px'}}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={cancelUpdate}>Cancel</button>
                 <button type="submit">Submit</button>
             </div>
@@ -346,9 +348,7 @@ function People() {
             <header>
                 <h1>View All People</h1>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: '10px' }}>
-                    <button type="button" onClick={showAddPersonForm}>
-                        Add a Person
-                    </button>
+                    <button type="button" onClick={showAddPersonForm}>Add a Person</button>
                 </div>
             </header>
 
