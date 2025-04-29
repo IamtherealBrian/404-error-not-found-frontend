@@ -41,6 +41,8 @@ const Write = () => {
         setShowPlaceholder(true);
     };
 
+    // return (
+    const isEmpty = entry.trim().length === 0;
     return (
         <div className="write-container">
             <h1>New Journal Entry ✍️</h1>
@@ -62,10 +64,20 @@ const Write = () => {
                 <div className="word-count">
                     Words: {countWords(entry)}
                 </div>
-                <button className="submit-entry" onClick={handleSubmit}>
+                {/*<button className="submit-entry" onClick={handleSubmit}>*/}
+                <button
+                    className="submit-entry"
+                    onClick={handleSubmit}
+                    disabled={isEmpty}
+                >
                     Submit
                 </button>
-                <button className="clear-entry" onClick={handleClear}>
+                {/*<button className="clear-entry" onClick={handleClear}>*/}
+                <button
+                    className="clear-entry"
+                    onClick={handleClear}
+                    disabled={isEmpty}
+                >
                     Clear
                 </button>
             </div>
