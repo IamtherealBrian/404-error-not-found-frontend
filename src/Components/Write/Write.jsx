@@ -41,6 +41,14 @@ const Write = () => {
         setShowPlaceholder(true);
     };
 
+    const handleKeyDown = (e) => {
+        const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+        const metaKey = isMac ? e.metaKey : e.ctrlKey;
+        if (metaKey && e.key === 'Enter') {
+            handleSubmit();
+        }
+    };
+
     // return (
     const isEmpty = entry.trim().length === 0;
     return (
@@ -51,6 +59,7 @@ const Write = () => {
                     placeholder={showPlaceholder ? "Write your thoughts here..." : ""}
                     value={entry}
                     onChange={(e) => setEntry(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     className="journal-input"
