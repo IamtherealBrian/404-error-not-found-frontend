@@ -220,12 +220,11 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
 
             {updatingText && (
                 <form onSubmit={updateText} className="update-form">
-                    <label>Key (ID):</label>
-                    <input type="text" value={updateKey} readOnly />
+                    <div className="key-display">{updateKey}</div>
                     <label>New Title:</label>
-                    <input type="text" value={updateTitle} onChange={(e) => setUpdateTitle(e.target.value)} />
+                    <input type="text" value={updateTitle} onChange={(e) => setUpdateTitle(e.target.value)}/>
                     <label>New Content:</label>
-                    <input type="text" value={updateContent} onChange={(e) => setUpdateContent(e.target.value)} />
+                    <input type="text" value={updateContent} onChange={(e) => setUpdateContent(e.target.value)}/>
                     <div className="button-group">
                         <button type="button" onClick={() => setUpdatingText(false)}>Cancel</button>
                         <button type="submit">Submit</button>
