@@ -93,8 +93,7 @@ export default function Submissions() {
 
             const resp = await axios.put(
                 MANUSCRIPT_UPDATE_ENDPOINT,
-                formData,
-                { headers: { 'Content-Type': 'multipart/form-data' } }
+                formData
             );
 
             if (resp.status === 200) {
