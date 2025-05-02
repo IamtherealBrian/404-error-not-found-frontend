@@ -96,7 +96,7 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
     const navigate = useNavigate();
     const username = localStorage.getItem("username");
     const [error, setError] = useState('');
-    const [texts, setTexts] = useState([]);
+    const [homePageText, setHomePageText] = useState(null);
     const [addingText, setAddingText] = useState(false);
     const [loading, setLoading] = useState(false);
     const [updatingText, setUpdatingText] = useState(false);
@@ -111,9 +111,12 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
             console.log('Fetched data:', data);
 
             const textsArray = Array.isArray(data) ? data : textsObjectToArray(data);
-            setTexts(textsArray);
+            
+            // Find the HomePage entry
+            const homePage = textsArray.find(text => text.key === 'HomePage');
+            setHomePageText(homePage);
         } catch (err) {
-            setError({ err });
+            setError(`Error fetching texts: ${err.message || JSON.stringify(err)}`);
         } finally {
             setLoading(false);
         }
@@ -193,15 +196,15 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
 
             {loading ? (
                 <div>loading...</div>
+            ) : homePageText ? (
+                <div key={homePageText.key} className="text-item">
+                    <h2>{homePageText.title}</h2>
+                    <p>{homePageText.text}</p>
+                    <button onClick={() => confirmAndDelete(homePageText.key)}>DELETE</button>
+                    <button onClick={() => handleUpdate(homePageText)}>UPDATE</button>
+                </div>
             ) : (
-                texts.map((text) => (
-                    <div key={text.key} className="text-item">
-                        <h2>{text.title}</h2>
-                        <p>{text.text}</p>
-                        <button onClick={() => confirmAndDelete(text.key)}>DELETE</button>
-                        <button onClick={() => handleUpdate(text)}>UPDATE</button>
-                    </div>
-                ))
+                <div>No homepage content found</div>
             )}
 
             {addingText && (

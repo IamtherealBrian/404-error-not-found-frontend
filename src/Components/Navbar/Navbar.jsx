@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 
 const PAGES = [
     { label: 'Home', destination: '/' },
-    { label: 'View All People', destination: '/people' },
-    { label: 'Dashboard', destination: '/submissions' },
-    { label: 'View Masthead', destination: '/masthead' },
+    { label: 'People', destination: '/people' },
+    { label: 'Dashboard', destination: '/dashboard' },
+    { label: 'Masthead', destination: '/masthead' },
 ];
 
 // function NavLink({ page }) {

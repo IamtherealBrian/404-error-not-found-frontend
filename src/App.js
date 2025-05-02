@@ -5,8 +5,8 @@ import Navbar from './Components/Navbar/Navbar';
 import Home from './Components/Home/Home';
 import People from './Components/People/People';
 import LoginPage from './Components/Login/LoginPage';
-import Submissions from './Components/Submissions/Submissions';
-import SubmissionDetail from './Components/Submissions/SubmissionDetail';
+import Dashboard from './Components/Dashboard/Dashboard';
+import DashboardDetail from './Components/Dashboard/DashboardDetail';
 import Masthead from './Components/Masthead';
 import PeopleDetail from './Components/People/PeopleDetail';
 
@@ -44,9 +44,13 @@ function App() {
                 <Route path="/" element={<ProtectedRoute element={<Home isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/people/:name" element={<ProtectedRoute element={<PeopleDetail />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/people" element={<ProtectedRoute element={<People />} isAuthenticated={isAuthenticated} />} />
-                <Route path="/submissions" element={<ProtectedRoute element={<Submissions />} isAuthenticated={isAuthenticated} />} />
-                <Route path="/submissions/:title" element={<ProtectedRoute element={<SubmissionDetail />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/dashboard/:title" element={<ProtectedRoute element={<DashboardDetail />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/masthead" element={<ProtectedRoute element={<Masthead />} isAuthenticated={isAuthenticated} />} />
+                
+                {/* Redirects from old paths to new paths */}
+                <Route path="/submissions" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/submissions/:title" element={<Navigate to={location => `/dashboard/${location.pathname.split('/').pop()}`} replace />} />
             </Routes>
         </BrowserRouter>
     );

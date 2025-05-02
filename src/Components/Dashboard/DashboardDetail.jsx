@@ -5,7 +5,7 @@ import { BACKEND_URL } from '../../constants';
 
 const MANUSCRIPT_READ_ENDPOINT = `${BACKEND_URL}/manuscript/read`;
 
-function SubmissionDetail() {
+function DashboardDetail() {
     const { title } = useParams();
     const navigate = useNavigate();
     const [manuscript, setManuscript] = useState(null);
@@ -39,8 +39,8 @@ function SubmissionDetail() {
 
     return (
         <div style={{ padding: '20px' }}>
-            <button onClick={() => navigate('/submissions')} style={{ marginBottom: '20px' }}>
-                ← Back to Submissions
+            <button onClick={() => navigate('/dashboard')} style={{ marginBottom: '20px' }}>
+                ← Back to Dashboard
             </button>
             <h1>{manuscript.title}</h1>
             <div style={{ marginTop: '20px' }}>
@@ -55,4 +55,4 @@ function SubmissionDetail() {
     );
 }
 
-export default SubmissionDetail; 
+export default DashboardDetail; 

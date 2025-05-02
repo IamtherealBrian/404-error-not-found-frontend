@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../../constants';
-import './Submissions.css';
+import './Dashboard.css';
 
 const MANUSCRIPT_READ_ENDPOINT   = `${BACKEND_URL}/manuscript/read`;
 const MANUSCRIPT_UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
@@ -32,7 +32,7 @@ const STATE_TRANSITIONS = {
 const getNextPossibleStates = (currentState) =>
     STATE_TRANSITIONS[currentState] || [];
 
-export default function Submissions() {
+export default function Dashboard() {
     const navigate = useNavigate();
     const [manuscripts, setManuscripts]       = useState([]);
     const [error, setError]                   = useState('');
@@ -129,13 +129,6 @@ export default function Submissions() {
     return (
         <div className="wrapper">
             <h1>Manuscripts</h1>
-            <div className="submission-guidelines">
-                <h2>Submission Guidelines</h2>
-                <ul>
-                    <li>Include Title, Author, Author Email, Abstract, Main Text, and Editor Email.</li>
-                    <li>Work must be original and not under review elsewhere.</li>
-                </ul>
-            </div>
 
             {error && <div className="error-message">{error}</div>}
 
@@ -187,7 +180,7 @@ export default function Submissions() {
                     ) : (
                         <div
                             className="submission-display"
-                            onClick={() => navigate(`/submissions/${encodeURIComponent(m.title)}`)}
+                            onClick={() => navigate(`/dashboard/${encodeURIComponent(m.title)}`)}
                         >
                             <h3>{m.title}</h3>
                             <p><strong>Author:</strong> {m.author}</p>
@@ -210,4 +203,4 @@ export default function Submissions() {
             ))}
         </div>
     );
-}
+} 
