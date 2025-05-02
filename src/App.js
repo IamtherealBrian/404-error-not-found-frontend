@@ -9,6 +9,7 @@ import Dashboard from './Components/Dashboard/Dashboard';
 import DashboardDetail from './Components/Dashboard/DashboardDetail';
 import Masthead from './Components/Masthead';
 import PeopleDetail from './Components/People/PeopleDetail';
+import Submission from './Components/Submissions/Submission';
 
 import './App.css';
 
@@ -47,6 +48,7 @@ function App() {
                 <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/dashboard/:title" element={<ProtectedRoute element={<DashboardDetail />} isAuthenticated={isAuthenticated} />} />
                 <Route path="/masthead" element={<ProtectedRoute element={<Masthead />} isAuthenticated={isAuthenticated} />} />
+                <Route path="/submission" element={<ProtectedRoute element={<Submission isAuthenticated={isAuthenticated} />} isAuthenticated={isAuthenticated} />} />
                 
                 {/* Redirects from old paths to new paths */}
                 <Route path="/submissions" element={<Navigate to="/dashboard" replace />} />
