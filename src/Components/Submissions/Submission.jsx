@@ -2,42 +2,42 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../../constants';
-import './Submission.css';
+import './Submission.css';               // <-- fixed
 
-const MANUSCRIPT_READ_ENDPOINT   = `${BACKEND_URL}/manuscript/read`;
-const MANUSCRIPT_CREATE_ENDPOINT = `${BACKEND_URL}/manuscript/create`;
-const MANUSCRIPT_UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
-const MANUSCRIPT_DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
+const READ_ENDPOINT   = `${BACKEND_URL}/manuscript/read`;
+const CREATE_ENDPOINT = `${BACKEND_URL}/manuscript/create`;
+const UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
+const DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
 
 const STATE_TRANSITIONS = {
     SUB: ['Rejected', 'Referee Review', 'Withdrawn'],
     Submitted: ['Rejected', 'Referee Review', 'Withdrawn'],
-    REF: ['Rejected', 'Submitted', 'Copy Edit', 'Author Revisions', 'Referee Review', 'Withdrawn'],
-    'Referee Review': ['Rejected', 'Submitted', 'Copy Edit', 'Author Revisions', 'Referee Review', 'Withdrawn'],
-    AUTH: ['Editor Review', 'Withdrawn'],
-    'Author Revisions': ['Editor Review', 'Withdrawn'],
-    ED: ['Copy Edit', 'Withdrawn'],
-    'Editor Review': ['Copy Edit', 'Withdrawn'],
-    CE: ['Author Review', 'Withdrawn'],
-    'Copy Edit': ['Author Review', 'Withdrawn'],
-    AR: ['Formatting', 'Withdrawn'],
-    'Author Review': ['Formatting', 'Withdrawn'],
-    FOR: ['Published', 'Withdrawn'],
-    Formatting: ['Published', 'Withdrawn'],
+    REF: ['Rejected','Submitted','Copy Edit','Author Revisions','Referee Review','Withdrawn'],
+    'Referee Review': ['Rejected','Submitted','Copy Edit','Author Revisions','Referee Review','Withdrawn'],
+    AUTH: ['Editor Review','Withdrawn'],
+    'Author Revisions': ['Editor Review','Withdrawn'],
+    ED: ['Copy Edit','Withdrawn'],
+    'Editor Review': ['Copy Edit','Withdrawn'],
+    CE: ['Author Review','Withdrawn'],
+    'Copy Edit': ['Author Review','Withdrawn'],
+    AR: ['Formatting','Withdrawn'],
+    'Author Review': ['Formatting','Withdrawn'],
+    FOR: ['Published','Withdrawn'],
+    Formatting: ['Published','Withdrawn'],
     PUB: ['Withdrawn'],
     Published: ['Withdrawn'],
     Rejected: [],
     Withdrawn: []
 };
 
-const getNextPossibleStates = currentState =>
-    STATE_TRANSITIONS[currentState] || [];
+const getNextPossibleStates = current =>
+    STATE_TRANSITIONS[current] || [];
 
 export default function Submissions() {
     const navigate = useNavigate();
 
-    const [manuscripts, setManuscripts] = useState([]);
-    const [error, setError]             = useState('');
+    const [manuscripts, setManuscripts]     = useState([]);
+    const [error, setError]                 = useState('');
     const [showCreateForm, setShowCreateForm] = useState(false);
 
     const [newManuscript, setNewManuscript] = useState({
@@ -47,38 +47,36 @@ export default function Submissions() {
         abstract: '',
         text: '',
         editor_email: '',
-        state: 'SUB',
-        file: null
+        file: null,
     });
 
-    const [editingManuscript, setEditingManuscript] = useState(null);
-    const [editedData, setEditedData]               = useState({});
-    const [editedFile, setEditedFile]               = useState(null);
+    const [editingTitle, setEditingTitle]  = useState(null);
+    const [editedData, setEditedData]      = useState({});
+    // const [editedFile, setEditedFile]      = useState(null);
 
     useEffect(() => {
         fetchManuscripts();
     }, []);
 
-    const fetchManuscripts = async () => {
+    async function fetchManuscripts() {
         try {
-            const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
+            const { data } = await axios.get(READ_ENDPOINT);
             const all = Object.values(data);
             setManuscripts(all.filter(m => m.state !== 'Rejected' && m.state !== 'Withdrawn'));
         } catch (err) {
             setError(`Error fetching manuscripts: ${err.message}`);
         }
-    };
+    }
 
-    const handleNewChange = e => {
+    function handleNewChange(e) {
         const { name, value } = e.target;
         setNewManuscript(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleFileChange = e => {
+    }
+    function handleFileChange(e) {
         setNewManuscript(prev => ({ ...prev, file: e.target.files[0] }));
-    };
+    }
 
-    const createManuscript = async () => {
+    async function createManuscript() {
         setError('');
         if (!newManuscript.title.trim()) {
             setError('Title cannot be blank.');
@@ -88,27 +86,26 @@ export default function Submissions() {
             setError('A manuscript with this title already exists.');
             return;
         }
+
         try {
-            const formData = new FormData();
-            Object.entries(newManuscript).forEach(([key, val]) => {
-                if (val != null) formData.append(key, val);
-            });
+            const payload = {
+                title:          newManuscript.title,
+                author:         newManuscript.author,
+                author_email:   newManuscript.author_email,
+                text:           newManuscript.text,
+                abstract:       newManuscript.abstract,
+                editor_email:   newManuscript.editor_email
+            };
             const resp = await axios.post(
-                MANUSCRIPT_CREATE_ENDPOINT,
-                formData,
-                { headers: { 'Content-Type': 'multipart/form-data' } }
+                CREATE_ENDPOINT,
+                payload,
+                { headers: { 'Content-Type': 'application/json' } }
             );
             if (resp.status === 200) {
-                fetchManuscripts();
+                await fetchManuscripts();
                 setNewManuscript({
-                    title: '',
-                    author: '',
-                    author_email: '',
-                    abstract: '',
-                    text: '',
-                    editor_email: '',
-                    state: 'SUB',
-                    file: null
+                    title: '', author: '', author_email: '',
+                    abstract: '', text: '', editor_email: '', file: null
                 });
                 setShowCreateForm(false);
             } else {
@@ -117,71 +114,64 @@ export default function Submissions() {
         } catch (err) {
             setError(`Error creating manuscript: ${err.message}`);
         }
-    };
+    }
 
-    const startEditing = m => {
-        setEditingManuscript(m.title);
+    function startEditing(m) {
+        setEditingTitle(m.title);
         setEditedData({ ...m });
-        setEditedFile(null);
-    };
+        // setEditedFile(null);
+    }
 
-    const handleEditInputChange = e => {
+    function handleEditInputChange(e) {
         const { name, value } = e.target;
         setEditedData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleEditFileChange = e => {
-        setEditedFile(e.target.files[0]);
-    };
-
-    const cancelEditing = () => {
+    }
+    // function handleEditFileChange(e) {
+    //     setEditedFile(e.target.files[0]);
+    // }
+    function cancelEditing() {
         if (!window.confirm('Discard your changes?')) return;
-        setEditingManuscript(null);
+        setEditingTitle(null);
         setEditedData({});
-        setEditedFile(null);
-    };
+        // setEditedFile(null);
+    }
 
-    const updateManuscript = async () => {
+    async function updateManuscript() {
         try {
-            const formData = new FormData();
-            Object.entries(editedData).forEach(([key, val]) => {
-                if (val != null) formData.append(key, val);
-            });
-            if (editedFile) formData.append('file', editedFile);
+            const payload = { ...editedData };
+            // backend update ignores "title" field, so no need to strip it here
             const resp = await axios.put(
-                MANUSCRIPT_UPDATE_ENDPOINT,
-                formData,
-                { headers: { 'Content-Type': 'multipart/form-data' } }
+                UPDATE_ENDPOINT,
+                payload,
+                { headers: { 'Content-Type': 'application/json' } }
             );
             if (resp.status === 200) {
-                fetchManuscripts();
-                setEditingManuscript(null);
-                setEditedData({});
-                setEditedFile(null);
+                await fetchManuscripts();
+                cancelEditing();
             } else {
                 setError(`Update returned status: ${resp.status}`);
             }
         } catch (err) {
             setError(`Error updating manuscript: ${err.message}`);
         }
-    };
+    }
 
-    const deleteManuscript = async title => {
+    async function deleteManuscript(title) {
         if (!window.confirm(`Delete "${title}"?`)) return;
         try {
             const resp = await axios.delete(
-                MANUSCRIPT_DELETE_ENDPOINT,
+                DELETE_ENDPOINT,
                 { data: { title } }
             );
             if (resp.status === 200) {
-                fetchManuscripts();
+                await fetchManuscripts();
             } else {
                 setError(`Delete returned status: ${resp.status}`);
             }
         } catch (err) {
             setError(`Error deleting manuscript: ${err.message}`);
         }
-    };
+    }
 
     return (
         <div className="wrapper">
@@ -258,7 +248,7 @@ export default function Submissions() {
                     </label><br/>
 
                     <label>
-                        Upload PDF/Word:<br/>
+                        (Optional) Upload PDF/Word:<br/>
                         <input
                             type="file"
                             accept=".pdf,.doc,.docx"
@@ -276,14 +266,9 @@ export default function Submissions() {
             <h2>Existing Manuscripts</h2>
             {manuscripts.map(m => (
                 <div key={m.title} className="submission-container">
-                    {editingManuscript === m.title ? (
+                    {editingTitle === m.title ? (
                         <div className="submission-edit-form">
                             <h3>Edit &quot;{m.title}&quot;</h3>
-
-                            <label>
-                                Title:<br/>
-                                <input type="text" value={editedData.title} disabled />
-                            </label><br/>
 
                             <label>
                                 Author:<br/>
@@ -349,15 +334,6 @@ export default function Submissions() {
                                 </select>
                             </label><br/>
 
-                            <label>
-                                Upload New PDF/Word:<br/>
-                                <input
-                                    type="file"
-                                    accept=".pdf,.doc,.docx"
-                                    onChange={handleEditFileChange}
-                                />
-                            </label><br/>
-
                             <div className="button-group">
                                 <button onClick={updateManuscript}>Save</button>
                                 <button onClick={cancelEditing}>Cancel</button>
@@ -375,18 +351,12 @@ export default function Submissions() {
                             <p><strong>Current State:</strong> {m.state}</p>
                             <div className="submission-actions">
                                 <button
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                        startEditing(m);
-                                    }}
+                                    onClick={e => { e.stopPropagation(); startEditing(m); }}
                                 >
                                     Edit
                                 </button>
                                 <button
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                        deleteManuscript(m.title);
-                                    }}
+                                    onClick={e => { e.stopPropagation(); deleteManuscript(m.title); }}
                                 >
                                     Delete
                                 </button>
