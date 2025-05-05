@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import Dashboard from './Dashboard';
 import axios from 'axios';
 import { BrowserRouter } from 'react-router-dom';
+import { BACKEND_URL } from '../../constants';
 
 jest.mock('axios');
 
@@ -82,4 +83,37 @@ describe('Dashboard Component', () => {
       expect(screen.getByText('Test Title')).toBeInTheDocument();
     });
   });
+
+  test('clicking Delete calls API and removes manuscript', async () => {
+    axios.get.mockResolvedValueOnce({ data: mockManuscriptsData });
+    axios.delete.mockResolvedValueOnce({ status: 200 });
+    window.confirm = jest.fn(() => true);
+
+    render(
+      <BrowserRouter>
+        <Dashboard />
+      </BrowserRouter>
+    );
+
+    // wait for initial load
+    await waitFor(() => screen.getByText('Test Title'));
+
+    // click Delete on "Test Title"
+    fireEvent.click(screen.getAllByText('Delete')[0]);
+
+    // confirm prompt was shown
+    expect(window.confirm).toHaveBeenCalledWith('Delete "Test Title"?');
+
+    // axios.delete called with correct data
+    expect(axios.delete).toHaveBeenCalledWith(
+      `${BACKEND_URL}/manuscript/delete`,
+      { data: { title: 'Test Title' } }
+    );
+
+    // after delete, item no longer in list
+    await waitFor(() => {
+      expect(screen.queryByText('Test Title')).toBeNull();
+    });
+  });
+
 });
