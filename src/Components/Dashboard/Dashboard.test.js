@@ -116,4 +116,22 @@ describe('Dashboard Component', () => {
     });
   });
 
+  test('displays error message when fetch fails', async () => {
+    const err = new Error('Network Error');
+    axios.get.mockRejectedValueOnce(err);
+
+    render(
+      <BrowserRouter>
+        <Dashboard />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Error fetching manuscripts: Network Error/)
+      ).toBeInTheDocument();
+    });
+});
+
+
 });
