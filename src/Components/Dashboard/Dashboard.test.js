@@ -85,7 +85,9 @@ describe('Dashboard Component', () => {
   });
 
   test('clicking Delete calls API and removes manuscript', async () => {
-    axios.get.mockResolvedValueOnce({ data: mockManuscriptsData });
+    axios.get
+      .mockResolvedValueOnce({ data: mockManuscriptsData })
+      .mockResolvedValueOnce({ data: { b: mockManuscriptsData.b } });
     axios.delete.mockResolvedValueOnce({ status: 200 });
     window.confirm = jest.fn(() => true);
 
