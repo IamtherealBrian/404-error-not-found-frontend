@@ -153,4 +153,18 @@ test('renders HomePage content without act warnings', async () => {
     ).toBeInTheDocument();
 });
 
+test('does not render login section when user is not authenticated', () => {
+    render(
+        <Router>
+            <Home isAuthenticated={false} setIsAuthenticated={() => {}} />
+        </Router>
+    );
+
+    expect(screen.queryByText(/Login as/i)).not.toBeInTheDocument();
+    
+    expect(
+        screen.getByRole('heading', { name: /Journal Text/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/add text/i)).toBeInTheDocument();
+});
 
