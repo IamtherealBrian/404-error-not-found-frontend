@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const TEXT_READ_ENDPOINT = `${BACKEND_URL}/text`;
 const TEXT_DELETE_ENDPOINT = `${BACKEND_URL}/text/delete`;
 const TEXT_UPDATE_ENDPOINT = `${BACKEND_URL}/text`;
+const MANUSCRIPT_CREATE_ENDPOINT = `${BACKEND_URL}/manuscript/create`;
 
 function ErrorMessage({ message }) {
     return <div className="error-message">{message}</div>;
@@ -31,6 +32,11 @@ function Submission({ isAuthenticated }) {
     const [updateKey, setUpdateKey] = useState('');
     const [updateTitle, setUpdateTitle] = useState('');
     const [updateContent, setUpdateContent] = useState('');
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [newManuscript, setNewManuscript] = useState({
+        title: '', author: '', author_email: '',
+        text: '', abstract: '', editor_email: '', curr_state: 'SUB'
+    });
 
     const fetchSubmissionText = async () => {
         setLoading(true);
@@ -94,6 +100,47 @@ function Submission({ isAuthenticated }) {
         }
     }, [updateKey, updateTitle, updateContent]);
 
+    const handleNewChange = (e) => {
+        const { name, value } = e.target;
+        setNewManuscript(prev => ({ ...prev, [name]: value }));
+    };
+
+    const createManuscript = async () => {
+        try {
+            // 创建一个新的对象，将 curr_state 改为 state
+            const requestData = {
+                ...newManuscript,
+                state: newManuscript.curr_state,
+            };
+            delete requestData.curr_state;
+
+            console.log('Sending manuscript data:', requestData);
+
+            const resp = await axios.post(MANUSCRIPT_CREATE_ENDPOINT, requestData, {
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                }
+            });
+            console.log('Server response:', resp.data);
+            
+            if (resp.status === 200) {
+                setShowCreateForm(false);
+                setNewManuscript({
+                    title: '', author: '', author_email: '',
+                    text: '', abstract: '', editor_email: '', curr_state: 'SUB'
+                });
+                navigate('/dashboard');
+            } else {
+                setError(`Create failed: ${resp.status}`);
+            }
+        } catch (err) {
+            console.error('Error details:', err.response?.data || err.message);
+            console.error('Request data:', newManuscript);
+            setError(`Error creating manuscript: ${err.response?.data?.message || err.message}`);
+        }
+    };
+
     useEffect(() => {
         fetchSubmissionText();
     }, []);
@@ -108,6 +155,37 @@ function Submission({ isAuthenticated }) {
     return (
         <div className="wrapper">
             {error && <ErrorMessage message={error} />}
+
+            <button onClick={() => setShowCreateForm(prev => !prev)}>
+                {showCreateForm ? "Cancel Create" : "Create New Manuscript"}
+            </button>
+
+            {showCreateForm && (
+                <div className="submission-create-form">
+                    <h3>Create New Manuscript</h3>
+                    <label>Title:<br/><input name="title" value={newManuscript.title} onChange={handleNewChange} /></label><br/>
+                    <label>Author:<br/><input name="author" value={newManuscript.author} onChange={handleNewChange} /></label><br/>
+                    <label>Author Email:<br/><input name="author_email" value={newManuscript.author_email} onChange={handleNewChange} /></label><br/>
+                    <label>Abstract:<br/><textarea name="abstract" className="large-textarea" value={newManuscript.abstract} onChange={handleNewChange} /></label><br/>
+                    <label>Text:<br/><textarea name="text" className="large-textarea" value={newManuscript.text} onChange={handleNewChange} /></label><br/>
+                    <label>Editor Email:<br/><input name="editor_email" value={newManuscript.editor_email} onChange={handleNewChange} /></label><br/>
+                    <label>Initial State:<br/>
+                        <select name="curr_state" value={newManuscript.curr_state} onChange={handleNewChange}>
+                            <option value="SUB">Submitted</option>
+                            <option value="REF">Referee Review</option>
+                            <option value="AUTH">Author Revisions</option>
+                            <option value="EDIT">Editor Review</option>
+                            <option value="COPY">Copy Edit</option>
+                            <option value="AUTH_REV">Author Review</option>
+                            <option value="FORM">Formatting</option>
+                            <option value="PUB">Published</option>
+                            <option value="REJ">Rejected</option>
+                            <option value="WITH">Withdrawn</option>
+                        </select>
+                    </label><br/>
+                    <button onClick={createManuscript}>Submit</button>
+                </div>
+            )}
 
             {loading ? (
                 <div>Loading...</div>

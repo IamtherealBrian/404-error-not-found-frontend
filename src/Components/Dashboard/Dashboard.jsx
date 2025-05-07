@@ -7,22 +7,35 @@ import './Dashboard.css';
 const MANUSCRIPT_READ_ENDPOINT    = `${BACKEND_URL}/manuscript/read`;
 const MANUSCRIPT_UPDATE_ENDPOINT  = `${BACKEND_URL}/manuscript/update`;
 const MANUSCRIPT_DELETE_ENDPOINT  = `${BACKEND_URL}/manuscript/delete`;
-const MANUSCRIPT_CREATE_ENDPOINT  = `${BACKEND_URL}/manuscript/create`;
 
 const STATE_TRANSITIONS = {
-    Submitted: ['Rejected', 'Referee Review', 'Withdrawn'],
-    'Referee Review': ['Rejected', 'Submitted', 'Copy Edit', 'Author Revisions', 'Withdrawn'],
-    'Author Revisions': ['Editor Review', 'Withdrawn'],
-    'Editor Review': ['Copy Edit', 'Withdrawn'],
-    'Copy Edit': ['Author Review', 'Withdrawn'],
-    'Author Review': ['Formatting', 'Withdrawn'],
-    Formatting: ['Published', 'Withdrawn'],
-    Published: ['Withdrawn'],
-    Rejected: [],
-    Withdrawn: []
+    'SUB': ['REJ', 'REF', 'WITH'],
+    'REF': ['REJ', 'SUB', 'COPY', 'AUTH', 'WITH'],
+    'AUTH': ['EDIT', 'WITH'],
+    'EDIT': ['COPY', 'WITH'],
+    'COPY': ['AUTH', 'WITH'],
+    'AUTH_REV': ['FORM', 'WITH'],
+    'FORM': ['PUB', 'WITH'],
+    'PUB': ['WITH'],
+    'REJ': [],
+    'WITH': []
+};
+
+const STATE_DISPLAY_NAMES = {
+    'SUB': 'Submitted',
+    'REF': 'Referee Review',
+    'AUTH': 'Author Revisions',
+    'EDIT': 'Editor Review',
+    'COPY': 'Copy Edit',
+    'AUTH_REV': 'Author Review',
+    'FORM': 'Formatting',
+    'PUB': 'Published',
+    'REJ': 'Rejected',
+    'WITH': 'Withdrawn'
 };
 
 const getNextPossibleStates = (currentState) => STATE_TRANSITIONS[currentState] || [];
+const getStateDisplayName = (stateCode) => STATE_DISPLAY_NAMES[stateCode] || stateCode;
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -32,12 +45,6 @@ export default function Dashboard() {
     const [editedData, setEditedData] = useState({});
     const [editedFile, setEditedFile] = useState(null);
 
-    const [showCreateForm, setShowCreateForm] = useState(false);
-    const [newManuscript, setNewManuscript] = useState({
-        title: '', author: '', author_email: '',
-        text: '', abstract: '', editor_email: '', curr_state: 'Submitted'
-    });
-
     useEffect(() => {
         fetchManuscripts();
     }, []);
@@ -45,9 +52,10 @@ export default function Dashboard() {
     const fetchManuscripts = async () => {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
+            console.log('Fetched manuscripts:', data);
             setManuscripts(
                 Object.values(data).filter(
-                    m => m.state !== 'Rejected' && m.state !== 'Withdrawn'
+                    m => m.state !== 'REJ' && m.state !== 'WITH'
                 )
             );
         } catch (err) {
@@ -107,60 +115,11 @@ export default function Dashboard() {
         }
     };
 
-    const handleNewChange = (e) => {
-        const { name, value } = e.target;
-        setNewManuscript(prev => ({ ...prev, [name]: value }));
-    };
-
-    const createManuscript = async () => {
-        try {
-            const resp = await axios.post(MANUSCRIPT_CREATE_ENDPOINT, newManuscript, {
-                headers: { "Content-Type": "application/json" }
-            });
-            if (resp.status === 200) {
-                fetchManuscripts();
-                setShowCreateForm(false);
-                setNewManuscript({
-                    title: '', author: '', author_email: '',
-                    text: '', abstract: '', editor_email: '', curr_state: 'Submitted'
-                });
-            } else {
-                setError(`Create failed: ${resp.status}`);
-            }
-        } catch (err) {
-            setError(`Error creating manuscript: ${err.message}`);
-        }
-    };
-
     return (
         <div className="wrapper">
             <h1>Manuscripts</h1>
 
             {error && <div className="error-message">{error}</div>}
-
-            <button onClick={() => setShowCreateForm(prev => !prev)}>
-                {showCreateForm ? "Cancel Create" : "Create New Manuscript"}
-            </button>
-
-            {showCreateForm && (
-                <div className="submission-create-form">
-                    <h3>Create New Manuscript</h3>
-                    <label>Title:<br/><input name="title" value={newManuscript.title} onChange={handleNewChange} /></label><br/>
-                    <label>Author:<br/><input name="author" value={newManuscript.author} onChange={handleNewChange} /></label><br/>
-                    <label>Author Email:<br/><input name="author_email" value={newManuscript.author_email} onChange={handleNewChange} /></label><br/>
-                    <label>Abstract:<br/><textarea name="abstract" className="large-textarea" value={newManuscript.abstract} onChange={handleNewChange} /></label><br/>
-                    <label>Text:<br/><textarea name="text" className="large-textarea" value={newManuscript.text} onChange={handleNewChange} /></label><br/>
-                    <label>Editor Email:<br/><input name="editor_email" value={newManuscript.editor_email} onChange={handleNewChange} /></label><br/>
-                    <label>Initial State:<br/>
-                        <select name="curr_state" value={newManuscript.curr_state} onChange={handleNewChange}>
-                            {Object.keys(STATE_TRANSITIONS).map(state => (
-                                <option key={state} value={state}>{state}</option>
-                            ))}
-                        </select>
-                    </label><br/>
-                    <button onClick={createManuscript}>Submit</button>
-                </div>
-            )}
 
             <h2>Existing Manuscripts</h2>
             {manuscripts.map(m => (
@@ -175,9 +134,9 @@ export default function Dashboard() {
                             <label>Editor Email:<br/><input type="email" name="editor_email" value={editedData.editor_email} onChange={handleEditInputChange} /></label><br/>
                             <label>State:<br/>
                                 <select name="state" value={editedData.state} onChange={handleEditInputChange}>
-                                    <option value={editedData.state}>{editedData.state}</option>
+                                    <option value={editedData.state}>{getStateDisplayName(editedData.state)}</option>
                                     {getNextPossibleStates(editedData.state).map(ns => (
-                                        <option key={ns} value={ns}>{ns}</option>
+                                        <option key={ns} value={ns}>{getStateDisplayName(ns)}</option>
                                     ))}
                                 </select>
                             </label><br/>
@@ -194,7 +153,7 @@ export default function Dashboard() {
                         >
                             <h3>{m.title}</h3>
                             <p><strong>Author:</strong> {m.author}</p>
-                            <p><strong>Current State:</strong> {m.state || '(not set)'}</p>
+                            <p><strong>Current State:</strong> {getStateDisplayName(m.state) || '(not set)'}</p>
                             <div className="submission-actions">
                                 <button onClick={e => { e.stopPropagation(); startEditing(m); }}>Edit</button>
                                 <button onClick={e => { e.stopPropagation(); deleteManuscript(m.title); }}>Delete</button>
