@@ -129,3 +129,28 @@ describe('Home Component', () => {
         expect(localStorage.getItem('username')).toBeNull();
     });
 });
+
+
+test('renders HomePage content without act warnings', async () => {
+    axios.get.mockResolvedValueOnce({
+        data: {
+            HomePage: {
+                title: 'Home Page',
+                text: 'This is a journal about building API servers.'
+            }
+        }
+    });
+
+    render(
+        <Router>
+            <Home isAuthenticated={true} setIsAuthenticated={() => {}} />
+        </Router>
+    );
+
+    expect(await screen.findByText('Home Page')).toBeInTheDocument();
+    expect(
+        await screen.findByText('This is a journal about building API servers.')
+    ).toBeInTheDocument();
+});
+
+
