@@ -157,12 +157,12 @@ function Submission({ isAuthenticated }) {
             {error && <ErrorMessage message={error} />}
 
             <button onClick={() => setShowCreateForm(prev => !prev)}>
-                {showCreateForm ? "Cancel Create" : "Create New Manuscript"}
+                {showCreateForm ? "Cancel Create" : "Submit"}
             </button>
 
             {showCreateForm && (
                 <div className="submission-create-form">
-                    <h3>Create New Manuscript</h3>
+                    <h3>Submit</h3>
                     <label>Title:<br/><input name="title" value={newManuscript.title} onChange={handleNewChange} /></label><br/>
                     <label>Author:<br/><input name="author" value={newManuscript.author} onChange={handleNewChange} /></label><br/>
                     <label>Author Email:<br/><input name="author_email" value={newManuscript.author_email} onChange={handleNewChange} /></label><br/>
