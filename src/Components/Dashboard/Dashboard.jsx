@@ -4,38 +4,49 @@ import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../../constants';
 import './Dashboard.css';
 
-const MANUSCRIPT_READ_ENDPOINT    = `${BACKEND_URL}/manuscript/read`;
-const MANUSCRIPT_UPDATE_ENDPOINT  = `${BACKEND_URL}/manuscript/update`;
-const MANUSCRIPT_DELETE_ENDPOINT  = `${BACKEND_URL}/manuscript/delete`;
+const MANUSCRIPT_READ_ENDPOINT   = `${BACKEND_URL}/manuscript/read`;
+const MANUSCRIPT_UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
+const MANUSCRIPT_DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
 
 const STATE_TRANSITIONS = {
-    'SUB': ['REJ', 'REF', 'WITH'],
-    'REF': ['REJ', 'SUB', 'COPY', 'AUTH', 'WITH'],
-    'AUTH': ['EDIT', 'WITH'],
-    'EDIT': ['COPY', 'WITH'],
-    'COPY': ['AUTH', 'WITH'],
-    'AUTH_REV': ['FORM', 'WITH'],
-    'FORM': ['PUB', 'WITH'],
-    'PUB': ['WITH'],
-    'REJ': [],
-    'WITH': []
+    SUB: ['REJ', 'REF', 'WITH'],
+    REF: ['REJ', 'SUB', 'COPY', 'AUTH', 'WITH'],
+    AUTH: ['EDIT', 'WITH'],
+    EDIT: ['COPY', 'WITH'],
+    COPY: ['AUTH', 'WITH'],
+    AUTH_REV: ['FORM', 'WITH'],
+    FORM: ['PUB', 'WITH'],
+    PUB: ['WITH'],
+    REJ: [],
+    WITH: []
 };
 
 const STATE_DISPLAY_NAMES = {
-    'SUB': 'Submitted',
-    'REF': 'Referee Review',
-    'AUTH': 'Author Revisions',
-    'EDIT': 'Editor Review',
-    'COPY': 'Copy Edit',
-    'AUTH_REV': 'Author Review',
-    'FORM': 'Formatting',
-    'PUB': 'Published',
-    'REJ': 'Rejected',
-    'WITH': 'Withdrawn'
+    SUB: 'Submitted',
+    REF: 'Referee Review',
+    AUTH: 'Author Revisions',
+    EDIT: 'Editor Review',
+    COPY: 'Copy Edit',
+    AUTH_REV: 'Author Review',
+    FORM: 'Formatting',
+    PUB: 'Published',
+    REJ: 'Rejected',
+    WITH: 'Withdrawn'
 };
 
-const getNextPossibleStates = (currentState) => STATE_TRANSITIONS[currentState] || [];
-const getStateDisplayName = (stateCode) => STATE_DISPLAY_NAMES[stateCode] || stateCode;
+const getNextPossibleStates = (state) => STATE_TRANSITIONS[state] || [];
+const getStateDisplayName = (code) => STATE_DISPLAY_NAMES[code] || code;
+
+const STATE_CODE_ORDER = [
+    'SUB',
+    'REF',
+    'AUTH',
+    'EDIT',
+    'COPY',
+    'AUTH_REV',
+    'FORM',
+    'PUB'
+];
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -52,21 +63,28 @@ export default function Dashboard() {
     const fetchManuscripts = async () => {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
-            setManuscripts(
-                Object.values(data).filter(m => {
-                    const code = m.state;
-                    const display = STATE_DISPLAY_NAMES[code] || code;
-                    return code !== 'REJ'
-                        && code !== 'WITH'
-                        && display !== 'Rejected'
-                        && display !== 'Withdrawn';
-                })
-            );
+            const filtered = Object.values(data).filter(m => {
+                const code = m.state;
+                const display = STATE_DISPLAY_NAMES[code] || code;
+                return (
+                    code !== 'REJ' &&
+                    code !== 'WITH' &&
+                    display !== 'Rejected' &&
+                    display !== 'Withdrawn'
+                );
+            });
+            const sorted = filtered.sort((a, b) => {
+                const ia = STATE_CODE_ORDER.indexOf(a.state);
+                const ib = STATE_CODE_ORDER.indexOf(b.state);
+                const pa = ia === -1 ? STATE_CODE_ORDER.length : ia;
+                const pb = ib === -1 ? STATE_CODE_ORDER.length : ib;
+                return pb - pa;
+            });
+            setManuscripts(sorted);
         } catch (err) {
             setError(`Error fetching manuscripts: ${err.message}`);
         }
     };
-
 
     const startEditing = (m) => {
         setEditingManuscript(m.title);
@@ -79,9 +97,12 @@ export default function Dashboard() {
         setEditedData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleEditFileChange = (e) => setEditedFile(e.target.files[0]);
+    const handleEditFileChange = (e) => {
+        setEditedFile(e.target.files[0]);
+    };
+
     const cancelEditing = () => {
-        if (!window.confirm("Discard your changes?")) return;
+        if (!window.confirm('Discard your changes?')) return;
         setEditingManuscript(null);
         setEditedData({});
         setEditedFile(null);
@@ -90,11 +111,10 @@ export default function Dashboard() {
     const updateManuscript = async () => {
         try {
             const formData = new FormData();
-            for (const key in editedData) {
+            Object.keys(editedData).forEach(key => {
                 formData.append(key, editedData[key]);
-            }
+            });
             if (editedFile) formData.append('file', editedFile);
-
             const resp = await axios.put(MANUSCRIPT_UPDATE_ENDPOINT, formData);
             if (resp.status === 200) {
                 fetchManuscripts();
@@ -113,8 +133,11 @@ export default function Dashboard() {
             const resp = await axios.delete(MANUSCRIPT_DELETE_ENDPOINT, {
                 data: { title }
             });
-            if (resp.status === 200) fetchManuscripts();
-            else setError(`Delete failed: ${resp.status}`);
+            if (resp.status === 200) {
+                fetchManuscripts();
+            } else {
+                setError(`Delete failed: ${resp.status}`);
+            }
         } catch (err) {
             setError(`Error deleting manuscript: ${err.message}`);
         }
@@ -123,50 +146,145 @@ export default function Dashboard() {
     return (
         <div className="wrapper">
             <h1>Manuscripts</h1>
-
             {error && <div className="error-message">{error}</div>}
-
             <h2>Existing Manuscripts</h2>
-            {manuscripts.map(m => (
-                <div key={m.title} className="submission-container">
-                    {editingManuscript === m.title ? (
-                        <div className="submission-edit-form">
-                            <label>Title:<br/><input type="text" name="title" value={editedData.title} disabled /></label><br/>
-                            <label>Author:<br/><input type="text" name="author" value={editedData.author} onChange={handleEditInputChange} /></label><br/>
-                            <label>Author Email:<br/><input type="email" name="author_email" value={editedData.author_email} onChange={handleEditInputChange} /></label><br/>
-                            <label>Abstract:<br/><textarea name="abstract" className="large-textarea" value={editedData.abstract} onChange={handleEditInputChange} /></label><br/>
-                            <label>Text:<br/><textarea name="text" className="large-textarea" value={editedData.text} onChange={handleEditInputChange} /></label><br/>
-                            <label>Editor Email:<br/><input type="email" name="editor_email" value={editedData.editor_email} onChange={handleEditInputChange} /></label><br/>
-                            <label>State:<br/>
-                                <select name="state" value={editedData.state} onChange={handleEditInputChange}>
-                                    <option value={editedData.state}>{getStateDisplayName(editedData.state)}</option>
-                                    {getNextPossibleStates(editedData.state).map(ns => (
-                                        <option key={ns} value={ns}>{getStateDisplayName(ns)}</option>
-                                    ))}
-                                </select>
-                            </label><br/>
-                            <label>Upload New PDF/Word:<br/>
-                                <input type="file" accept=".pdf,.doc,.docx" onChange={handleEditFileChange} />
-                            </label><br/>
-                            <button onClick={updateManuscript}>Save</button>
-                            <button onClick={cancelEditing}>Cancel</button>
+            {manuscripts.map(m =>
+                editingManuscript === m.title ? (
+                    <div key={m.title} className="submission-edit-form">
+                        <label>
+                            Title:
+                            <br />
+                            <input
+                                type="text"
+                                name="title"
+                                value={editedData.title}
+                                disabled
+                            />
+                        </label>
+                        <br />
+                        <label>
+                            Author:
+                            <br />
+                            <input
+                                type="text"
+                                name="author"
+                                value={editedData.author}
+                                onChange={handleEditInputChange}
+                            />
+                        </label>
+                        <br />
+                        <label>
+                            Author Email:
+                            <br />
+                            <input
+                                type="email"
+                                name="author_email"
+                                value={editedData.author_email}
+                                onChange={handleEditInputChange}
+                            />
+                        </label>
+                        <br />
+                        <label>
+                            Abstract:
+                            <br />
+                            <textarea
+                                name="abstract"
+                                className="large-textarea"
+                                value={editedData.abstract}
+                                onChange={handleEditInputChange}
+                            />
+                        </label>
+                        <br />
+                        <label>
+                            Text:
+                            <br />
+                            <textarea
+                                name="text"
+                                className="large-textarea"
+                                value={editedData.text}
+                                onChange={handleEditInputChange}
+                            />
+                        </label>
+                        <br />
+                        <label>
+                            Editor Email:
+                            <br />
+                            <input
+                                type="email"
+                                name="editor_email"
+                                value={editedData.editor_email}
+                                onChange={handleEditInputChange}
+                            />
+                        </label>
+                        <br />
+                        <label>
+                            State:
+                            <br />
+                            <select
+                                name="state"
+                                value={editedData.state}
+                                onChange={handleEditInputChange}
+                            >
+                                <option value={editedData.state}>
+                                    {getStateDisplayName(editedData.state)}
+                                </option>
+                                {getNextPossibleStates(editedData.state).map(ns => (
+                                    <option key={ns} value={ns}>
+                                        {getStateDisplayName(ns)}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <br />
+                        <label>
+                            Upload New PDF/Word:
+                            <br />
+                            <input
+                                type="file"
+                                accept=".pdf,.doc,.docx"
+                                onChange={handleEditFileChange}
+                            />
+                        </label>
+                        <br />
+                        <button onClick={updateManuscript}>Save</button>
+                        <button onClick={cancelEditing}>Cancel</button>
+                    </div>
+                ) : (
+                    <div
+                        key={m.title}
+                        className="submission-display"
+                        onClick={() =>
+                            navigate(`/dashboard/${encodeURIComponent(m.title)}`)
+                        }
+                    >
+                        <h3>{m.title}</h3>
+                        <p>
+                            <strong>Author:</strong> {m.author}
+                        </p>
+                        <p>
+                            <strong>Current State:</strong> {getStateDisplayName(m.state)}
+                        </p>
+                        <div className="submission-actions">
+                            <button
+                                onClick={e => {
+                                    e.stopPropagation();
+                                    startEditing(m);
+                                }}
+                            >
+                                Edit
+                            </button>
+                            <button
+                                onClick={e => {
+                                    e.stopPropagation();
+                                    deleteManuscript(m.title);
+                                }}
+                            >
+                                Delete
+                            </button>
                         </div>
-                    ) : (
-                        <div
-                            className="submission-display"
-                            onClick={() => navigate(`/dashboard/${encodeURIComponent(m.title)}`)}
-                        >
-                            <h3>{m.title}</h3>
-                            <p><strong>Author:</strong> {m.author}</p>
-                            <p><strong>Current State:</strong> {getStateDisplayName(m.state) || '(not set)'}</p>
-                            <div className="submission-actions">
-                                <button onClick={e => { e.stopPropagation(); startEditing(m); }}>Edit</button>
-                                <button onClick={e => { e.stopPropagation(); deleteManuscript(m.title); }}>Delete</button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            ))}
+                    </div>
+                )
+            )}
         </div>
     );
 }
