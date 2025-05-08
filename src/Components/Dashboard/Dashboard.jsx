@@ -52,16 +52,21 @@ export default function Dashboard() {
     const fetchManuscripts = async () => {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
-            console.log('Fetched manuscripts:', data);
             setManuscripts(
-                Object.values(data).filter(
-                    m => m.state !== 'REJ' && m.state !== 'WITH'
-                )
+                Object.values(data).filter(m => {
+                    const code = m.state;
+                    const display = STATE_DISPLAY_NAMES[code] || code;
+                    return code !== 'REJ'
+                        && code !== 'WITH'
+                        && display !== 'Rejected'
+                        && display !== 'Withdrawn';
+                })
             );
         } catch (err) {
             setError(`Error fetching manuscripts: ${err.message}`);
         }
     };
+
 
     const startEditing = (m) => {
         setEditingManuscript(m.title);
