@@ -4,9 +4,36 @@ import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../../constants';
 import './Dashboard.css';
 
+// API Endpoints
 const MANUSCRIPT_READ_ENDPOINT   = `${BACKEND_URL}/manuscript/read`;
 const MANUSCRIPT_UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
 const MANUSCRIPT_DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
+
+// File Types
+const ACCEPTED_FILE_TYPES = '.pdf,.doc,.docx';
+
+// Form Field Names
+const FORM_FIELDS = {
+    TITLE: 'title',
+    AUTHOR: 'author',
+    AUTHOR_EMAIL: 'author_email',
+    ABSTRACT: 'abstract',
+    TEXT: 'text',
+    EDITOR_EMAIL: 'editor_email',
+    STATE: 'state',
+    FILE: 'file'
+};
+
+// Messages
+const MESSAGES = {
+    DELETE_CONFIRM: (title) => `Delete "${title}"?`,
+    DISCARD_CHANGES: 'Discard your changes?',
+    UPDATE_ERROR: (status) => `Update failed: ${status}`,
+    DELETE_ERROR: (status) => `Delete failed: ${status}`,
+    FETCH_ERROR: (message) => `Error fetching manuscripts: ${message}`,
+    UPDATE_ERROR_DETAIL: (message) => `Error updating manuscript: ${message}`,
+    DELETE_ERROR_DETAIL: (message) => `Error deleting manuscript: ${message}`
+};
 
 const STATE_TRANSITIONS = {
     SUB: ['REJ', 'REF', 'WITH'],
@@ -48,6 +75,11 @@ const STATE_CODE_ORDER = [
     'PUB'
 ];
 
+// Safe data access helper
+const getSafeValue = (obj, key, defaultValue = '') => {
+    return obj && typeof obj === 'object' ? obj[key] || defaultValue : defaultValue;
+};
+
 export default function Dashboard() {
     const navigate = useNavigate();
     const [manuscripts, setManuscripts] = useState([]);
@@ -82,12 +114,12 @@ export default function Dashboard() {
             });
             setManuscripts(sorted);
         } catch (err) {
-            setError(`Error fetching manuscripts: ${err.message}`);
+            setError(MESSAGES.FETCH_ERROR(err.message));
         }
     };
 
     const startEditing = (m) => {
-        setEditingManuscript(m.title);
+        setEditingManuscript(getSafeValue(m, FORM_FIELDS.TITLE));
         setEditedData({ ...m });
         setEditedFile(null);
     };
@@ -102,7 +134,7 @@ export default function Dashboard() {
     };
 
     const cancelEditing = () => {
-        if (!window.confirm('Discard your changes?')) return;
+        if (!window.confirm(MESSAGES.DISCARD_CHANGES)) return;
         setEditingManuscript(null);
         setEditedData({});
         setEditedFile(null);
@@ -112,23 +144,24 @@ export default function Dashboard() {
         try {
             const formData = new FormData();
             Object.keys(editedData).forEach(key => {
-                formData.append(key, editedData[key]);
+                formData.append(key, getSafeValue(editedData, key));
             });
-            if (editedFile) formData.append('file', editedFile);
+            if (editedFile) formData.append(FORM_FIELDS.FILE, editedFile);
+            
             const resp = await axios.put(MANUSCRIPT_UPDATE_ENDPOINT, formData);
             if (resp.status === 200) {
                 fetchManuscripts();
                 setEditingManuscript(null);
             } else {
-                setError(`Update failed: ${resp.status}`);
+                setError(MESSAGES.UPDATE_ERROR(resp.status));
             }
         } catch (err) {
-            setError(`Error updating manuscript: ${err.message}`);
+            setError(MESSAGES.UPDATE_ERROR_DETAIL(err.message));
         }
     };
 
     const deleteManuscript = async (title) => {
-        if (!window.confirm(`Delete "${title}"?`)) return;
+        if (!window.confirm(MESSAGES.DELETE_CONFIRM(title))) return;
         try {
             const resp = await axios.delete(MANUSCRIPT_DELETE_ENDPOINT, {
                 data: { title }
@@ -136,10 +169,10 @@ export default function Dashboard() {
             if (resp.status === 200) {
                 fetchManuscripts();
             } else {
-                setError(`Delete failed: ${resp.status}`);
+                setError(MESSAGES.DELETE_ERROR(resp.status));
             }
         } catch (err) {
-            setError(`Error deleting manuscript: ${err.message}`);
+            setError(MESSAGES.DELETE_ERROR_DETAIL(err.message));
         }
     };
 
@@ -156,8 +189,8 @@ export default function Dashboard() {
                             <br />
                             <input
                                 type="text"
-                                name="title"
-                                value={editedData.title}
+                                name={FORM_FIELDS.TITLE}
+                                value={getSafeValue(editedData, FORM_FIELDS.TITLE)}
                                 disabled
                             />
                         </label>
@@ -167,8 +200,8 @@ export default function Dashboard() {
                             <br />
                             <input
                                 type="text"
-                                name="author"
-                                value={editedData.author}
+                                name={FORM_FIELDS.AUTHOR}
+                                value={getSafeValue(editedData, FORM_FIELDS.AUTHOR)}
                                 onChange={handleEditInputChange}
                             />
                         </label>
@@ -178,8 +211,8 @@ export default function Dashboard() {
                             <br />
                             <input
                                 type="email"
-                                name="author_email"
-                                value={editedData.author_email}
+                                name={FORM_FIELDS.AUTHOR_EMAIL}
+                                value={getSafeValue(editedData, FORM_FIELDS.AUTHOR_EMAIL)}
                                 onChange={handleEditInputChange}
                             />
                         </label>
@@ -188,9 +221,9 @@ export default function Dashboard() {
                             Abstract:
                             <br />
                             <textarea
-                                name="abstract"
+                                name={FORM_FIELDS.ABSTRACT}
                                 className="large-textarea"
-                                value={editedData.abstract}
+                                value={getSafeValue(editedData, FORM_FIELDS.ABSTRACT)}
                                 onChange={handleEditInputChange}
                             />
                         </label>
@@ -199,9 +232,9 @@ export default function Dashboard() {
                             Text:
                             <br />
                             <textarea
-                                name="text"
+                                name={FORM_FIELDS.TEXT}
                                 className="large-textarea"
-                                value={editedData.text}
+                                value={getSafeValue(editedData, FORM_FIELDS.TEXT)}
                                 onChange={handleEditInputChange}
                             />
                         </label>
@@ -211,8 +244,8 @@ export default function Dashboard() {
                             <br />
                             <input
                                 type="email"
-                                name="editor_email"
-                                value={editedData.editor_email}
+                                name={FORM_FIELDS.EDITOR_EMAIL}
+                                value={getSafeValue(editedData, FORM_FIELDS.EDITOR_EMAIL)}
                                 onChange={handleEditInputChange}
                             />
                         </label>
@@ -221,14 +254,14 @@ export default function Dashboard() {
                             State:
                             <br />
                             <select
-                                name="state"
-                                value={editedData.state}
+                                name={FORM_FIELDS.STATE}
+                                value={getSafeValue(editedData, FORM_FIELDS.STATE)}
                                 onChange={handleEditInputChange}
                             >
-                                <option value={editedData.state}>
-                                    {getStateDisplayName(editedData.state)}
+                                <option value={getSafeValue(editedData, FORM_FIELDS.STATE)}>
+                                    {getStateDisplayName(getSafeValue(editedData, FORM_FIELDS.STATE))}
                                 </option>
-                                {getNextPossibleStates(editedData.state).map(ns => (
+                                {getNextPossibleStates(getSafeValue(editedData, FORM_FIELDS.STATE)).map(ns => (
                                     <option key={ns} value={ns}>
                                         {getStateDisplayName(ns)}
                                     </option>
@@ -241,7 +274,7 @@ export default function Dashboard() {
                             <br />
                             <input
                                 type="file"
-                                accept=".pdf,.doc,.docx"
+                                accept={ACCEPTED_FILE_TYPES}
                                 onChange={handleEditFileChange}
                             />
                         </label>
