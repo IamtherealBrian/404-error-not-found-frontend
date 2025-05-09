@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 
 const TEXT_READ_ENDPOINT = `${BACKEND_URL}/text`;
 const TEXT_CREATE_ENDPOINT = `${BACKEND_URL}/text`;
-const TEXT_DELETE_ENDPOINT = `${BACKEND_URL}/text/delete`;
 const TEXT_UPDATE_ENDPOINT = `${BACKEND_URL}/text`;
 
 function AddTextForm({ visible, cancel, fetchTexts, setError }) {
@@ -122,29 +121,6 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
         }
     };
 
-    const deleteText = (key) => {
-        axios.delete(TEXT_DELETE_ENDPOINT, {
-            data: { key },
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-        })
-            .then(() => {
-                fetchTexts();
-            })
-            .catch((error) => {
-                setError(`error message: ${error.response?.data?.message || error.message}`);
-            });
-    };
-
-    // Confirmation wrapper
-    const confirmAndDelete = (key) => {
-        if (window.confirm("Are you sure you want to delete this journal text?")) {
-            deleteText(key);
-        }
-    };
-
     const handleUpdate = (text) => {
         setUpdatingText(true);
         setUpdateKey(text.key);
@@ -200,7 +176,6 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
                 <div key={homePageText.key} className="text-item">
                     <h2>{homePageText.title}</h2>
                     <p>{homePageText.text}</p>
-                    <button onClick={() => confirmAndDelete(homePageText.key)}>DELETE</button>
                     <button onClick={() => handleUpdate(homePageText)}>UPDATE</button>
                 </div>
             ) : (
