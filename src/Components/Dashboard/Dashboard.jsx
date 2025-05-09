@@ -78,7 +78,7 @@ export default function Dashboard() {
                 const ib = STATE_CODE_ORDER.indexOf(b.state);
                 const pa = ia === -1 ? STATE_CODE_ORDER.length : ia;
                 const pb = ib === -1 ? STATE_CODE_ORDER.length : ib;
-                return pb - pa;
+                return pa - pb;
             });
             setManuscripts(sorted);
         } catch (err) {
