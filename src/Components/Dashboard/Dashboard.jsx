@@ -4,15 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../../constants';
 import './Dashboard.css';
 
-// API Endpoints
 const MANUSCRIPT_READ_ENDPOINT   = `${BACKEND_URL}/manuscript/read`;
 const MANUSCRIPT_UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
 const MANUSCRIPT_DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
 
-// File Types
 const ACCEPTED_FILE_TYPES = '.pdf,.doc,.docx';
 
-// Form Field Names
 const FORM_FIELDS = {
     TITLE: 'title',
     AUTHOR: 'author',
@@ -24,7 +21,6 @@ const FORM_FIELDS = {
     FILE: 'file'
 };
 
-// Messages
 const MESSAGES = {
     DELETE_CONFIRM: (title) => `Delete "${title}"?`,
     DISCARD_CHANGES: 'Discard your changes?',
@@ -65,17 +61,9 @@ const getNextPossibleStates = (state) => STATE_TRANSITIONS[state] || [];
 const getStateDisplayName = (code) => STATE_DISPLAY_NAMES[code] || code;
 
 const STATE_CODE_ORDER = [
-    'SUB',
-    'REF',
-    'AUTH',
-    'EDIT',
-    'COPY',
-    'AUTH_REV',
-    'FORM',
-    'PUB'
+    'SUB', 'REF', 'AUTH', 'EDIT', 'COPY', 'AUTH_REV', 'FORM', 'PUB'
 ];
 
-// Safe data access helper
 const getSafeValue = (obj, key, defaultValue = '') => {
     return obj && typeof obj === 'object' ? obj[key] || defaultValue : defaultValue;
 };
@@ -88,6 +76,11 @@ export default function Dashboard() {
     const [editedData, setEditedData] = useState({});
     const [editedFile, setEditedFile] = useState(null);
 
+    const currentRole = localStorage.getItem("role");
+    const currentUser = localStorage.getItem("username");
+    const isEditor = currentRole === "editor";
+    const isAuthor = currentRole === "author";
+
     useEffect(() => {
         fetchManuscripts();
     }, []);
@@ -95,15 +88,11 @@ export default function Dashboard() {
     const fetchManuscripts = async () => {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
-            const filtered = Object.values(data).filter(m => {
-                const code = m.state;
-                const display = STATE_DISPLAY_NAMES[code] || code;
-                return (
-                    code !== 'REJ' &&
-                    code !== 'WITH' &&
-                    display !== 'Rejected' &&
-                    display !== 'Withdrawn'
-                );
+            const all = Object.values(data);
+            const filtered = all.filter(m => {
+                if (isEditor) return true;
+                if (isAuthor) return m.author_email === currentUser;
+                return false;
             });
             const sorted = filtered.sort((a, b) => {
                 const ia = STATE_CODE_ORDER.indexOf(a.state);
@@ -147,7 +136,7 @@ export default function Dashboard() {
                 formData.append(key, getSafeValue(editedData, key));
             });
             if (editedFile) formData.append(FORM_FIELDS.FILE, editedFile);
-            
+
             const resp = await axios.put(MANUSCRIPT_UPDATE_ENDPOINT, formData);
             if (resp.status === 200) {
                 fetchManuscripts();
@@ -176,6 +165,18 @@ export default function Dashboard() {
         }
     };
 
+    const updateManuscriptStateToWithdraw = async (title) => {
+        try {
+            await axios.put(MANUSCRIPT_UPDATE_ENDPOINT, {
+                title,
+                state: 'WITH'
+            });
+            fetchManuscripts();
+        } catch (err) {
+            setError(`Withdraw failed: ${err.message}`);
+        }
+    };
+
     return (
         <div className="wrapper">
             <h1>Manuscripts</h1>
@@ -184,137 +185,54 @@ export default function Dashboard() {
             {manuscripts.map(m =>
                 editingManuscript === m.title ? (
                     <div key={m.title} className="submission-edit-form">
-                        <label>
-                            Title:
-                            <br />
-                            <input
-                                type="text"
-                                name={FORM_FIELDS.TITLE}
-                                value={getSafeValue(editedData, FORM_FIELDS.TITLE)}
-                                disabled
-                            />
-                        </label>
-                        <br />
-                        <label>
-                            Author:
-                            <br />
-                            <input
-                                type="text"
-                                name={FORM_FIELDS.AUTHOR}
-                                value={getSafeValue(editedData, FORM_FIELDS.AUTHOR)}
-                                onChange={handleEditInputChange}
-                            />
-                        </label>
-                        <br />
-                        <label>
-                            Author Email:
-                            <br />
-                            <input
-                                type="email"
-                                name={FORM_FIELDS.AUTHOR_EMAIL}
-                                value={getSafeValue(editedData, FORM_FIELDS.AUTHOR_EMAIL)}
-                                onChange={handleEditInputChange}
-                            />
-                        </label>
-                        <br />
-                        <label>
-                            Abstract:
-                            <br />
-                            <textarea
-                                name={FORM_FIELDS.ABSTRACT}
-                                className="large-textarea"
-                                value={getSafeValue(editedData, FORM_FIELDS.ABSTRACT)}
-                                onChange={handleEditInputChange}
-                            />
-                        </label>
-                        <br />
-                        <label>
-                            Text:
-                            <br />
-                            <textarea
-                                name={FORM_FIELDS.TEXT}
-                                className="large-textarea"
-                                value={getSafeValue(editedData, FORM_FIELDS.TEXT)}
-                                onChange={handleEditInputChange}
-                            />
-                        </label>
-                        <br />
-                        <label>
-                            Editor Email:
-                            <br />
-                            <input
-                                type="email"
-                                name={FORM_FIELDS.EDITOR_EMAIL}
-                                value={getSafeValue(editedData, FORM_FIELDS.EDITOR_EMAIL)}
-                                onChange={handleEditInputChange}
-                            />
-                        </label>
-                        <br />
-                        <label>
-                            State:
-                            <br />
-                            <select
-                                name={FORM_FIELDS.STATE}
-                                value={getSafeValue(editedData, FORM_FIELDS.STATE)}
-                                onChange={handleEditInputChange}
-                            >
-                                <option value={getSafeValue(editedData, FORM_FIELDS.STATE)}>
-                                    {getStateDisplayName(getSafeValue(editedData, FORM_FIELDS.STATE))}
-                                </option>
+                        <label>Title:<br />
+                            <input type="text" name={FORM_FIELDS.TITLE} value={getSafeValue(editedData, FORM_FIELDS.TITLE)} disabled />
+                        </label><br />
+                        <label>Author:<br />
+                            <input type="text" name={FORM_FIELDS.AUTHOR} value={getSafeValue(editedData, FORM_FIELDS.AUTHOR)} onChange={handleEditInputChange} />
+                        </label><br />
+                        <label>Author Email:<br />
+                            <input type="email" name={FORM_FIELDS.AUTHOR_EMAIL} value={getSafeValue(editedData, FORM_FIELDS.AUTHOR_EMAIL)} onChange={handleEditInputChange} />
+                        </label><br />
+                        <label>Abstract:<br />
+                            <textarea name={FORM_FIELDS.ABSTRACT} className="large-textarea" value={getSafeValue(editedData, FORM_FIELDS.ABSTRACT)} onChange={handleEditInputChange} />
+                        </label><br />
+                        <label>Text:<br />
+                            <textarea name={FORM_FIELDS.TEXT} className="large-textarea" value={getSafeValue(editedData, FORM_FIELDS.TEXT)} onChange={handleEditInputChange} />
+                        </label><br />
+                        <label>Editor Email:<br />
+                            <input type="email" name={FORM_FIELDS.EDITOR_EMAIL} value={getSafeValue(editedData, FORM_FIELDS.EDITOR_EMAIL)} onChange={handleEditInputChange} />
+                        </label><br />
+                        <label>State:<br />
+                            <select name={FORM_FIELDS.STATE} value={getSafeValue(editedData, FORM_FIELDS.STATE)} onChange={handleEditInputChange}>
+                                <option value={getSafeValue(editedData, FORM_FIELDS.STATE)}>{getStateDisplayName(getSafeValue(editedData, FORM_FIELDS.STATE))}</option>
                                 {getNextPossibleStates(getSafeValue(editedData, FORM_FIELDS.STATE)).map(ns => (
-                                    <option key={ns} value={ns}>
-                                        {getStateDisplayName(ns)}
-                                    </option>
+                                    <option key={ns} value={ns}>{getStateDisplayName(ns)}</option>
                                 ))}
                             </select>
-                        </label>
-                        <br />
-                        <label>
-                            Upload New PDF/Word:
-                            <br />
-                            <input
-                                type="file"
-                                accept={ACCEPTED_FILE_TYPES}
-                                onChange={handleEditFileChange}
-                            />
-                        </label>
-                        <br />
+                        </label><br />
+                        <label>Upload New PDF/Word:<br />
+                            <input type="file" accept={ACCEPTED_FILE_TYPES} onChange={handleEditFileChange} />
+                        </label><br />
                         <button onClick={updateManuscript}>Save</button>
                         <button onClick={cancelEditing}>Cancel</button>
                     </div>
                 ) : (
-                    <div
-                        key={m.title}
-                        className="submission-display"
-                        onClick={() =>
-                            navigate(`/dashboard/${encodeURIComponent(m.title)}`)
-                        }
-                    >
+                    <div key={m.title} className="submission-display" onClick={() => navigate(`/dashboard/${encodeURIComponent(m.title)}`)}>
                         <h3>{m.title}</h3>
-                        <p>
-                            <strong>Author:</strong> {m.author}
-                        </p>
-                        <p>
-                            <strong>Current State:</strong> {getStateDisplayName(m.state)}
-                        </p>
-                        <div className="submission-actions">
-                            <button
-                                onClick={e => {
-                                    e.stopPropagation();
-                                    startEditing(m);
-                                }}
-                            >
-                                Edit
-                            </button>
-                            <button
-                                onClick={e => {
-                                    e.stopPropagation();
-                                    deleteManuscript(m.title);
-                                }}
-                            >
-                                Delete
-                            </button>
-                        </div>
+                        <p><strong>Author:</strong> {m.author}</p>
+                        <p><strong>Current State:</strong> {getStateDisplayName(m.state)}</p>
+                        {isEditor && (
+                            <div className="submission-actions">
+                                <button onClick={e => { e.stopPropagation(); startEditing(m); }}>Edit</button>
+                                <button onClick={e => { e.stopPropagation(); deleteManuscript(m.title); }}>Delete</button>
+                            </div>
+                        )}
+                        {isAuthor && m.author_email === currentUser && (
+                            <div className="submission-actions">
+                                <button onClick={e => { e.stopPropagation(); updateManuscriptStateToWithdraw(m.title); }}>Withdraw</button>
+                            </div>
+                        )}
                     </div>
                 )
             )}

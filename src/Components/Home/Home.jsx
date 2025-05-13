@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const TEXT_READ_ENDPOINT = `${BACKEND_URL}/text`;
 const TEXT_CREATE_ENDPOINT = `${BACKEND_URL}/text`;
 const TEXT_UPDATE_ENDPOINT = `${BACKEND_URL}/text`;
+const USER_INFO_ENDPOINT = `${BACKEND_URL}/users`;
 
 function AddTextForm({ visible, cancel, fetchTexts, setError }) {
     const [keyValue, setKeyValue] = useState('');
@@ -39,31 +40,13 @@ function AddTextForm({ visible, cancel, fetchTexts, setError }) {
     return (
         <form className="add-text-form">
             <label htmlFor="key">Key</label>
-            <input
-                required
-                type="text"
-                id="key"
-                value={keyValue}
-                onChange={changeKey}
-            />
+            <input required type="text" id="key" value={keyValue} onChange={changeKey} />
 
             <label htmlFor="title">Title</label>
-            <input
-                required
-                type="text"
-                id="title"
-                value={title}
-                onChange={changeTitle}
-            />
+            <input required type="text" id="title" value={title} onChange={changeTitle} />
 
             <label htmlFor="text">Content</label>
-            <input
-                required
-                type="text"
-                id="text"
-                value={textContent}
-                onChange={changeText}
-            />
+            <input required type="text" id="text" value={textContent} onChange={changeText} />
 
             <button type="button" onClick={cancel}>Cancel</button>
             <button type="submit" onClick={addText}>Submit</button>
@@ -94,6 +77,7 @@ function textsObjectToArray(data) {
 function Home({ isAuthenticated, setIsAuthenticated }) {
     const navigate = useNavigate();
     const username = localStorage.getItem("username");
+    const [role, setRole] = useState(localStorage.getItem("role") || '');
     const [error, setError] = useState('');
     const [homePageText, setHomePageText] = useState(null);
     const [addingText, setAddingText] = useState(false);
@@ -108,16 +92,25 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
         try {
             const { data } = await axios.get(TEXT_READ_ENDPOINT);
             console.log('Fetched data:', data);
-
             const textsArray = Array.isArray(data) ? data : textsObjectToArray(data);
-            
-            // Find the HomePage entry
             const homePage = textsArray.find(text => text.key === 'HomePage');
             setHomePageText(homePage);
         } catch (err) {
             setError(`Error fetching texts: ${err.message || JSON.stringify(err)}`);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchUserRole = async () => {
+        if (!username || role) return;
+        try {
+            const { data } = await axios.get(`${USER_INFO_ENDPOINT}?email=${encodeURIComponent(username)}`);
+            const userRole = data.role || 'N/A';
+            setRole(userRole);
+            localStorage.setItem("role", userRole);
+        } catch (err) {
+            console.error("Failed to fetch user role:", err.message);
         }
     };
 
@@ -144,19 +137,21 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
 
     const handleLogout = () => {
         localStorage.removeItem("username");
+        localStorage.removeItem("role");
         setIsAuthenticated(false);
         navigate("/login");
     };
 
     useEffect(() => {
         fetchTexts();
+        fetchUserRole();
     }, []);
 
     return (
         <div className="wrapper">
             {isAuthenticated && (
                 <section className="auth-section">
-                    <p>Login as <strong>{username}</strong></p>
+                    <p>Login as <strong>{username}</strong> ({role})</p>
                     <button className="logout-button" onClick={handleLogout}>
                         Logout
                     </button>
@@ -200,9 +195,9 @@ function Home({ isAuthenticated, setIsAuthenticated }) {
                 <form onSubmit={updateText} className="update-form">
                     <div className="key-display">{updateKey}</div>
                     <label>New Title:</label>
-                    <input type="text" value={updateTitle} onChange={(e) => setUpdateTitle(e.target.value)}/>
+                    <input type="text" value={updateTitle} onChange={(e) => setUpdateTitle(e.target.value)} />
                     <label>New Content:</label>
-                    <input type="text" value={updateContent} onChange={(e) => setUpdateContent(e.target.value)}/>
+                    <input type="text" value={updateContent} onChange={(e) => setUpdateContent(e.target.value)} />
                     <div className="button-group">
                         <button type="button" onClick={() => setUpdatingText(false)}>Cancel</button>
                         <button type="submit">Submit</button>
