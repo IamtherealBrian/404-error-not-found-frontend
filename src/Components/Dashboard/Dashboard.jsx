@@ -89,11 +89,20 @@ export default function Dashboard() {
         try {
             const { data } = await axios.get(MANUSCRIPT_READ_ENDPOINT);
             const all = Object.values(data);
+
             const filtered = all.filter(m => {
-                if (isEditor) return true;
-                if (isAuthor) return m.author_email === currentUser;
+                if (m.state === 'REJ' || m.state === 'WITH') {
+                    return false;
+                }
+                if (isEditor) {
+                    return true;
+                }
+                if (isAuthor) {
+                    return m.author_email === currentUser;
+                }
                 return false;
             });
+            
             const sorted = filtered.sort((a, b) => {
                 const ia = STATE_CODE_ORDER.indexOf(a.state);
                 const ib = STATE_CODE_ORDER.indexOf(b.state);
@@ -101,6 +110,7 @@ export default function Dashboard() {
                 const pb = ib === -1 ? STATE_CODE_ORDER.length : ib;
                 return pa - pb;
             });
+
             setManuscripts(sorted);
         } catch (err) {
             setError(MESSAGES.FETCH_ERROR(err.message));
