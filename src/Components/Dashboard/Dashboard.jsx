@@ -32,14 +32,14 @@ const MESSAGES = {
 };
 
 const STATE_TRANSITIONS = {
-    SUB: ['REJ', 'REF', 'WITH'],
-    REF: ['REJ', 'SUB', 'COPY', 'AUTH', 'WITH'],
-    AUTH: ['EDIT', 'WITH'],
-    EDIT: ['COPY', 'WITH'],
-    COPY: ['AUTH', 'WITH'],
-    AUTH_REV: ['FORM', 'WITH'],
-    FORM: ['PUB', 'WITH'],
-    PUB: ['WITH'],
+    SUB: ['REJ', 'REF'],
+    REF: ['REJ', 'SUB', 'COPY', 'AUTH'],
+    AUTH: ['EDIT'],
+    EDIT: ['COPY'],
+    COPY: ['AUTH'],
+    AUTH_REV: ['FORM'],
+    FORM: ['PUB'],
+    PUB: [],
     REJ: [],
     WITH: []
 };
@@ -78,7 +78,7 @@ export default function Dashboard() {
 
     const currentRole = localStorage.getItem("role");
     const currentUser = localStorage.getItem("username");
-    const isEditor = currentRole === "editor";
+    const isEditor = ["editor", "consulting editor", "managing editor"].includes(currentRole);
     const isAuthor = currentRole === "author";
 
     useEffect(() => {
@@ -167,11 +167,16 @@ export default function Dashboard() {
 
     const updateManuscriptStateToWithdraw = async (title) => {
         try {
-            await axios.put(MANUSCRIPT_UPDATE_ENDPOINT, {
-                title,
-                state: 'WITH'
-            });
-            fetchManuscripts();
+            const formData = new FormData();
+            formData.append("title", title);
+            formData.append("state", "WITH");
+
+            const resp = await axios.put(MANUSCRIPT_UPDATE_ENDPOINT, formData);
+            if (resp.status === 200) {
+                fetchManuscripts();
+            } else {
+                setError(`Withdraw failed: ${resp.status}`);
+            }
         } catch (err) {
             setError(`Withdraw failed: ${err.message}`);
         }
