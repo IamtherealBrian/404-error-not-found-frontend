@@ -7,6 +7,7 @@ import './Dashboard.css';
 const MANUSCRIPT_READ_ENDPOINT = `${BACKEND_URL}/manuscript/read`;
 const MANUSCRIPT_UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
 const MANUSCRIPT_DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
+const EDITOR_LIST_ENDPOINT = `${BACKEND_URL}/editors`;
 
 const ACCEPTED_FILE_TYPES = '.pdf,.doc,.docx';
 
@@ -75,6 +76,7 @@ export default function Dashboard() {
     const [editingManuscript, setEditingManuscript] = useState(null);
     const [editedData, setEditedData] = useState({});
     const [editedFile, setEditedFile] = useState(null);
+    const [editorOptions, setEditorOptions] = useState([]); // 👈 新增状态
 
     const currentRole = localStorage.getItem("role");
     const currentUser = localStorage.getItem("username");
@@ -83,7 +85,18 @@ export default function Dashboard() {
 
     useEffect(() => {
         fetchManuscripts();
+        fetchEditors(); // 👈 获取编辑器列表
     }, []);
+
+    const fetchEditors = async () => {
+        try {
+            const { data } = await axios.get(EDITOR_LIST_ENDPOINT);
+            console.log("Fetched editors:", data);
+            setEditorOptions(data.editors || []);
+        } catch (err) {
+            console.error("Failed to fetch editor list:", err);
+        }
+    };
 
     const fetchManuscripts = async () => {
         try {
@@ -144,7 +157,7 @@ export default function Dashboard() {
             });
 
             if (isEditor) {
-                formData.set(FORM_FIELDS.EDITOR_EMAIL, currentUser);
+                formData.set(FORM_FIELDS.EDITOR_EMAIL, getSafeValue(editedData, FORM_FIELDS.EDITOR_EMAIL));
             }
 
             if (editedFile) formData.append(FORM_FIELDS.FILE, editedFile);
@@ -218,12 +231,18 @@ export default function Dashboard() {
                             <textarea name={FORM_FIELDS.TEXT} className="large-textarea" value={getSafeValue(editedData, FORM_FIELDS.TEXT)} onChange={handleEditInputChange} />
                         </label><br />
                         <label>Editor Email:<br />
-                            <input
-                                type="email"
+                            <select
                                 name={FORM_FIELDS.EDITOR_EMAIL}
                                 value={getSafeValue(editedData, FORM_FIELDS.EDITOR_EMAIL)}
-                                readOnly
-                            />
+                                onChange={handleEditInputChange}
+                            >
+                                <option value="">Select an editor</option>
+                                {editorOptions.map(email => (
+                                    <option key={email} value={email}>
+                                        {email}
+                                    </option>
+                                ))}
+                            </select>
                         </label><br />
                         <label>State:<br />
                             <select name={FORM_FIELDS.STATE} value={getSafeValue(editedData, FORM_FIELDS.STATE)} onChange={handleEditInputChange}>
