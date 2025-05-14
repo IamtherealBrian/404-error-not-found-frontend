@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../../constants';
 import './Dashboard.css';
 
-const MANUSCRIPT_READ_ENDPOINT   = `${BACKEND_URL}/manuscript/read`;
+const MANUSCRIPT_READ_ENDPOINT = `${BACKEND_URL}/manuscript/read`;
 const MANUSCRIPT_UPDATE_ENDPOINT = `${BACKEND_URL}/manuscript/update`;
 const MANUSCRIPT_DELETE_ENDPOINT = `${BACKEND_URL}/manuscript/delete`;
 
@@ -91,18 +91,12 @@ export default function Dashboard() {
             const all = Object.values(data);
 
             const filtered = all.filter(m => {
-                if (m.state === 'REJ' || m.state === 'WITH') {
-                    return false;
-                }
-                if (isEditor) {
-                    return true;
-                }
-                if (isAuthor) {
-                    return m.author_email === currentUser;
-                }
+                if (m.state === 'REJ' || m.state === 'WITH') return false;
+                if (isEditor) return true;
+                if (isAuthor) return m.author_email === currentUser;
                 return false;
             });
-            
+
             const sorted = filtered.sort((a, b) => {
                 const ia = STATE_CODE_ORDER.indexOf(a.state);
                 const ib = STATE_CODE_ORDER.indexOf(b.state);
@@ -119,7 +113,10 @@ export default function Dashboard() {
 
     const startEditing = (m) => {
         setEditingManuscript(getSafeValue(m, FORM_FIELDS.TITLE));
-        setEditedData({ ...m });
+        setEditedData({
+            ...m,
+            [FORM_FIELDS.EDITOR_EMAIL]: isEditor ? currentUser : m.editor_email
+        });
         setEditedFile(null);
     };
 
@@ -145,6 +142,11 @@ export default function Dashboard() {
             Object.keys(editedData).forEach(key => {
                 formData.append(key, getSafeValue(editedData, key));
             });
+
+            if (isEditor) {
+                formData.set(FORM_FIELDS.EDITOR_EMAIL, currentUser);
+            }
+
             if (editedFile) formData.append(FORM_FIELDS.FILE, editedFile);
 
             const resp = await axios.put(MANUSCRIPT_UPDATE_ENDPOINT, formData);
@@ -216,11 +218,18 @@ export default function Dashboard() {
                             <textarea name={FORM_FIELDS.TEXT} className="large-textarea" value={getSafeValue(editedData, FORM_FIELDS.TEXT)} onChange={handleEditInputChange} />
                         </label><br />
                         <label>Editor Email:<br />
-                            <input type="email" name={FORM_FIELDS.EDITOR_EMAIL} value={getSafeValue(editedData, FORM_FIELDS.EDITOR_EMAIL)} onChange={handleEditInputChange} />
+                            <input
+                                type="email"
+                                name={FORM_FIELDS.EDITOR_EMAIL}
+                                value={getSafeValue(editedData, FORM_FIELDS.EDITOR_EMAIL)}
+                                readOnly
+                            />
                         </label><br />
                         <label>State:<br />
                             <select name={FORM_FIELDS.STATE} value={getSafeValue(editedData, FORM_FIELDS.STATE)} onChange={handleEditInputChange}>
-                                <option value={getSafeValue(editedData, FORM_FIELDS.STATE)}>{getStateDisplayName(getSafeValue(editedData, FORM_FIELDS.STATE))}</option>
+                                <option value={getSafeValue(editedData, FORM_FIELDS.STATE)}>
+                                    {getStateDisplayName(getSafeValue(editedData, FORM_FIELDS.STATE))}
+                                </option>
                                 {getNextPossibleStates(getSafeValue(editedData, FORM_FIELDS.STATE)).map(ns => (
                                     <option key={ns} value={ns}>{getStateDisplayName(ns)}</option>
                                 ))}
