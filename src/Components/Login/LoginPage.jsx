@@ -10,7 +10,6 @@ const ROLE_OPTIONS = [
     "Consulting Editor",
     "Editor",
     "Managing Editor",
-    "Referee"
 ];
 
 const LoginPage = ({ setIsAuthenticated }) => {

@@ -6,41 +6,39 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 
 // API Endpoints
-const TEXT_READ_ENDPOINT        = `${BACKEND_URL}/text`;
-const TEXT_DELETE_ENDPOINT      = `${BACKEND_URL}/text/delete`;
-const TEXT_UPDATE_ENDPOINT      = `${BACKEND_URL}/text`;
+const TEXT_READ_ENDPOINT = `${BACKEND_URL}/text`;
+const TEXT_DELETE_ENDPOINT = `${BACKEND_URL}/text/delete`;
+const TEXT_UPDATE_ENDPOINT = `${BACKEND_URL}/text`;
 const MANUSCRIPT_CREATE_ENDPOINT = `${BACKEND_URL}/manuscript/create`;
 
 // Form Fields
 const FORM_FIELDS = {
-    TITLE:        'title',
-    AUTHOR:       'author',
+    TITLE: 'title',
+    AUTHOR: 'author',
     AUTHOR_EMAIL: 'author_email',
-    TEXT:         'text',
-    ABSTRACT:     'abstract',
-    CURR_STATE:   'curr_state',
-    STATE:        'state',
-    KEY:          'key'
+    TEXT: 'text',
+    ABSTRACT: 'abstract',
+    CURR_STATE: 'curr_state',
+    STATE: 'state',
+    KEY: 'key'
 };
 
 // Manuscript States
 const MANUSCRIPT_STATES = {
-    SUBMITTED: 'SUB',
-    // ... others omitted for brevity ...
+    SUBMITTED: 'SUB'
 };
 
 // State Display Names
 const STATE_DISPLAY_NAMES = {
     [MANUSCRIPT_STATES.SUBMITTED]: 'Submitted'
-    // only one option here
 };
 
 // Messages
 const MESSAGES = {
     DELETE_CONFIRM: 'Are you sure you want to delete this submission text?',
-    CREATE_FAILED:  status => `Create failed: ${status}`,
-    FETCH_ERROR:    err    => `Error fetching submission text: ${err.message || JSON.stringify(err)}`,
-    CREATE_ERROR:   err    => `Error creating manuscript: ${err.response?.data?.message || err.message}`
+    CREATE_FAILED: status => `Create failed: ${status}`,
+    FETCH_ERROR: err => `Error fetching submission text: ${err.message || JSON.stringify(err)}`,
+    CREATE_ERROR: err => `Error creating manuscript: ${err.response?.data?.message || err.message}`
 };
 
 // Safe object access
@@ -58,27 +56,29 @@ ErrorMessage.propTypes = {
     message: PropTypes.string.isRequired
 };
 
-// Initial manuscript state
 const INITIAL_MANUSCRIPT_STATE = {
-    [FORM_FIELDS.TITLE]:        '',
-    [FORM_FIELDS.AUTHOR]:       '',
+    [FORM_FIELDS.TITLE]: '',
+    [FORM_FIELDS.AUTHOR]: '',
     [FORM_FIELDS.AUTHOR_EMAIL]: '',
-    [FORM_FIELDS.TEXT]:         '',
-    [FORM_FIELDS.ABSTRACT]:     '',
-    [FORM_FIELDS.CURR_STATE]:   MANUSCRIPT_STATES.SUBMITTED
+    [FORM_FIELDS.TEXT]: '',
+    [FORM_FIELDS.ABSTRACT]: '',
+    [FORM_FIELDS.CURR_STATE]: MANUSCRIPT_STATES.SUBMITTED
 };
 
 function Submission({ isAuthenticated }) {
     const navigate = useNavigate();
-    const [error, setError]               = useState('');
+    const [error, setError] = useState('');
     const [submissionText, setSubmissionText] = useState(null);
-    const [loading, setLoading]           = useState(false);
+    const [loading, setLoading] = useState(false);
     const [updatingText, setUpdatingText] = useState(false);
-    const [updateKey, setUpdateKey]       = useState('');
-    const [updateTitle, setUpdateTitle]   = useState('');
+    const [updateKey, setUpdateKey] = useState('');
+    const [updateTitle, setUpdateTitle] = useState('');
     const [updateContent, setUpdateContent] = useState('');
     const [showCreateForm, setShowCreateForm] = useState(false);
-    const [newManuscript, setNewManuscript]   = useState(INITIAL_MANUSCRIPT_STATE);
+    const [newManuscript, setNewManuscript] = useState(INITIAL_MANUSCRIPT_STATE);
+
+    const username = localStorage.getItem("username");  // user email
+    const displayName = username?.split('@')[0] || '';  // simple author name
 
     const fetchSubmissionText = async () => {
         setLoading(true);
@@ -121,9 +121,9 @@ function Submission({ isAuthenticated }) {
     const updateText = useCallback(async event => {
         event.preventDefault();
         const updatedData = {
-            [FORM_FIELDS.KEY]:   updateKey,
+            [FORM_FIELDS.KEY]: updateKey,
             [FORM_FIELDS.TITLE]: updateTitle,
-            [FORM_FIELDS.TEXT]:  updateContent
+            [FORM_FIELDS.TEXT]: updateContent
         };
         try {
             await axios.put(TEXT_UPDATE_ENDPOINT, updatedData, {
@@ -152,7 +152,7 @@ function Submission({ isAuthenticated }) {
             const resp = await axios.post(
                 MANUSCRIPT_CREATE_ENDPOINT,
                 requestData,
-                { headers: { 'Content-Type':'application/json','Accept':'application/json' } }
+                { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } }
             );
 
             if (resp.status === 200) {
@@ -172,8 +172,16 @@ function Submission({ isAuthenticated }) {
     };
 
     useEffect(() => {
-        if (!isAuthenticated) navigate('/login');
-        else fetchSubmissionText();
+        if (!isAuthenticated) {
+            navigate('/login');
+        } else {
+            fetchSubmissionText();
+            setNewManuscript(prev => ({
+                ...prev,
+                [FORM_FIELDS.AUTHOR]: displayName,
+                [FORM_FIELDS.AUTHOR_EMAIL]: username
+            }));
+        }
     }, [isAuthenticated, navigate]);
 
     return (
@@ -188,49 +196,49 @@ function Submission({ isAuthenticated }) {
                 <div className="submission-create-form">
                     <h3>Submit</h3>
                     <label>
-                        Title:<br/>
+                        Title:<br />
                         <input
                             name={FORM_FIELDS.TITLE}
                             value={getSafeValue(newManuscript, FORM_FIELDS.TITLE)}
                             onChange={handleNewChange}
                         />
-                    </label><br/>
+                    </label><br />
                     <label>
-                        Author:<br/>
+                        Author:<br />
                         <input
                             name={FORM_FIELDS.AUTHOR}
                             value={getSafeValue(newManuscript, FORM_FIELDS.AUTHOR)}
-                            onChange={handleNewChange}
+                            readOnly
                         />
-                    </label><br/>
+                    </label><br />
                     <label>
-                        Author Email:<br/>
+                        Author Email:<br />
                         <input
                             name={FORM_FIELDS.AUTHOR_EMAIL}
                             value={getSafeValue(newManuscript, FORM_FIELDS.AUTHOR_EMAIL)}
-                            onChange={handleNewChange}
+                            readOnly
                         />
-                    </label><br/>
+                    </label><br />
                     <label>
-                        Abstract:<br/>
+                        Abstract:<br />
                         <textarea
                             name={FORM_FIELDS.ABSTRACT}
                             className="large-textarea"
                             value={getSafeValue(newManuscript, FORM_FIELDS.ABSTRACT)}
                             onChange={handleNewChange}
                         />
-                    </label><br/>
+                    </label><br />
                     <label>
-                        Text:<br/>
+                        Text:<br />
                         <textarea
                             name={FORM_FIELDS.TEXT}
                             className="large-textarea"
                             value={getSafeValue(newManuscript, FORM_FIELDS.TEXT)}
                             onChange={handleNewChange}
                         />
-                    </label><br/>
+                    </label><br />
                     <label>
-                        Initial State:<br/>
+                        Initial State:<br />
                         <select
                             name={FORM_FIELDS.CURR_STATE}
                             value={getSafeValue(newManuscript, FORM_FIELDS.CURR_STATE)}
@@ -240,7 +248,7 @@ function Submission({ isAuthenticated }) {
                                 {STATE_DISPLAY_NAMES[MANUSCRIPT_STATES.SUBMITTED]}
                             </option>
                         </select>
-                    </label><br/>
+                    </label><br />
                     <button onClick={createManuscript}>Submit</button>
                 </div>
             )}
