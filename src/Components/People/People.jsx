@@ -31,7 +31,6 @@ function AddPersonForm({ visible, cancel, fetchPeople, setError }) {
                 setRoleOptions(response.data.data.roles);
             } catch (error) {
                 setError('Failed to fetch roles');
-                console.error('Error fetching roles:', error);
             }
         };
         fetchRoles();
@@ -71,7 +70,7 @@ function AddPersonForm({ visible, cancel, fetchPeople, setError }) {
             if (error.response) {
                 setError(`Server error (${error.response.status}): ${error.response.data?.message || error.response.statusText}`);
             } else if (error.request) {
-                setError('No response received from server. Please check if the API is running and accessible.');
+                setError('No response received from server.');
             } else {
                 setError(`Error: ${error.message}`);
             }
@@ -96,40 +95,22 @@ function AddPersonForm({ visible, cancel, fetchPeople, setError }) {
 
             <div className="form-group">
                 <label htmlFor="affiliation">Affiliation</label>
-                <input
-                    required
-                    type="text"
-                    id="affiliation"
-                    value={affiliation}
-                    onChange={changeAffiliation}
-                />
+                <input required type="text" id="affiliation" value={affiliation} onChange={changeAffiliation} />
             </div>
 
             <div className="form-group">
                 <label htmlFor="roles">Roles:</label>
-                <select
-                    id="roles"
-                    className="form-control"
-                    value={roles}
-                    onChange={changeRoles}
-                    required
-                >
+                <select id="roles" className="form-control" value={roles} onChange={changeRoles} required>
                     <option value="">Select a role</option>
                     {Object.entries(roleOptions).map(([code, role]) => (
-                        <option key={code} value={code}>
-                            {role}
-                        </option>
+                        <option key={code} value={code}>{role}</option>
                     ))}
                 </select>
             </div>
 
             <div className="button-group">
-                <button type="button" onClick={cancel} disabled={loading}>
-                    Cancel
-                </button>
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Submitting...' : 'Submit'}
-                </button>
+                <button type="button" onClick={cancel} disabled={loading}>Cancel</button>
+                <button type="submit" disabled={loading}>{loading ? 'Submitting...' : 'Submit'}</button>
             </div>
         </form>
     );
@@ -150,7 +131,7 @@ ErrorMessage.propTypes = {
     message: propTypes.string.isRequired,
 };
 
-function Person({ person, onUpdate, onDelete, isUpdating, updateForm }) {
+function Person({ person, onUpdate, onDelete, isUpdating, updateForm, isEditor }) {
     const { name, email, affiliation, roles } = person;
     return (
         <div className="person-container">
@@ -160,24 +141,14 @@ function Person({ person, onUpdate, onDelete, isUpdating, updateForm }) {
                 <p>Affiliation: {affiliation}</p>
                 <p>Roles: {Array.isArray(roles) ? roles.join(', ') : roles}</p>
             </Link>
-
-            {/* Only show Update/Delete buttons when not currently editing */}
-            {!isUpdating && (
+            {isEditor && !isUpdating && (
                 <div className="person-actions">
                     <button onClick={() => onUpdate(person)}>Update</button>
-                    <button
-                        onClick={() => {
-                            if (window.confirm(`Are you sure you want to delete ${name}?`)) {
-                                onDelete(email);
-                            }
-                        }}
-                    >
-                        Delete
-                    </button>
+                    <button onClick={() => {
+                        if (window.confirm(`Are you sure you want to delete ${name}?`)) onDelete(email);
+                    }}>Delete</button>
                 </div>
             )}
-
-            {/* Show the inline update form when editing */}
             {isUpdating && updateForm}
         </div>
     );
@@ -194,6 +165,7 @@ Person.propTypes = {
     onDelete: propTypes.func.isRequired,
     isUpdating: propTypes.bool.isRequired,
     updateForm: propTypes.node,
+    isEditor: propTypes.bool.isRequired,
 };
 
 function peopleObjectToArray(data) {
@@ -211,6 +183,9 @@ function People() {
     const [updateRole, setUpdateRole] = useState([]);
     const [roleOptions, setRoleOptions] = useState({});
 
+    const currentRole = localStorage.getItem("role");
+    const isEditor = ["editor", "consulting editor", "managing editor"].includes(currentRole);
+
     const handleUpdate = (person) => {
         setUpdatingPersonId(person.email);
         setUpdateEmail(person.email);
@@ -227,20 +202,14 @@ function People() {
         setUpdateRole([]);
     };
 
-    const handleDelete = (email) => {
-        deletePerson(email);
-    };
+    const handleDelete = (email) => deletePerson(email);
 
     const fetchPeople = async () => {
         try {
             const { data } = await axios.get(PEOPLE_READ_ENDPOINT);
             setPeople(peopleObjectToArray(data));
         } catch (error) {
-            if (!error.response) {
-                setError("Network error. Please check your internet connection.");
-            } else {
-                setError(`There was a problem retrieving the list of people. ${error.response.data?.message || error.message}`);
-            }
+            setError(error.response?.data?.message || 'Failed to fetch people');
         }
     };
 
@@ -251,7 +220,6 @@ function People() {
                 setRoleOptions(response.data.data.roles);
             } catch (error) {
                 setError('Failed to fetch roles');
-                console.error('Error fetching roles:', error);
             }
         };
         fetchRoles();
@@ -259,51 +227,30 @@ function People() {
 
     const updatePerson = (event) => {
         event.preventDefault();
-        if (!updateEmail) {
-            setError('Please enter an email to update.');
-            return;
-        }
-
+        if (!updateEmail) return setError('Email required for update');
         const updatedData = {
             email: updateEmail,
             name: updateName || undefined,
             affiliation: updateAffiliation || undefined,
             roles: updateRole,
         };
-
         axios.put(PEOPLE_READ_ENDPOINT, JSON.stringify(updatedData), {
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*"
-            },
+            headers: { "Content-Type": "application/json" },
         })
             .then(() => {
                 setUpdatingPersonId(null);
                 fetchPeople();
             })
-            .catch((error) => {
-                setError(`There was a problem updating the person. ${error.response?.data?.message || error.message}`);
-            });
+            .catch(error => setError(error.response?.data?.message || 'Update failed'));
     };
 
     const deletePerson = (email) => {
-        if (!email) {
-            setError('Invalid email for deletion.');
-            return;
-        }
         axios.delete(PEOPLE_DELETE_ENDPOINT, {
             data: JSON.stringify({ email }),
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "*/*"
-            },
+            headers: { "Content-Type": "application/json" },
         })
-            .then(() => {
-                fetchPeople();
-            })
-            .catch((error) => {
-                setError(`There was a problem deleting the person. ${error.response?.data?.message || error.message}`);
-            });
+            .then(() => fetchPeople())
+            .catch(error => setError(error.response?.data?.message || 'Delete failed'));
     };
 
     const showAddPersonForm = () => setAddingPerson(true);
@@ -347,9 +294,11 @@ function People() {
         <div className="wrapper">
             <header>
                 <h1>View All People</h1>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: '10px' }}>
-                    <button type="button" onClick={showAddPersonForm}>Add a Person</button>
-                </div>
+                {isEditor && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: '10px' }}>
+                        <button type="button" onClick={showAddPersonForm}>Add a Person</button>
+                    </div>
+                )}
             </header>
 
             <AddPersonForm
@@ -369,6 +318,7 @@ function People() {
                     onDelete={handleDelete}
                     isUpdating={updatingPersonId === person.email}
                     updateForm={updateForm}
+                    isEditor={isEditor}
                 />
             ))}
         </div>
